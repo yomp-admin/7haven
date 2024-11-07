@@ -1,23 +1,24 @@
 {
-  "private": true,
-  "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write ."
-  },
-  "devDependencies": {
-    "prettier": "^3.2.5",
-    "prettier-plugin-svelte": "^3.2.2",
-    "turbo": "^2.2.3"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "name": "with-svelte",
-  "packageManager": "bun@1.1.25",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ]
+    "name": "sc",
+    "private": true,
+    "scripts": {
+        "build": "turbo build",
+        "dev": "turbo dev",
+        "ui:add": "cd packages/ui && bunx shadcn-svelte@next add",
+        "lint": "turbo lint",
+        "format": "prettier --write \"**/*.{js,ts,svelte,md}\""
+    },
+    "devDependencies": {
+        "@types/node": "^22.9.0",
+        "typescript": "^5.0.0",
+        "turbo": "^2.2.3"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "packageManager": "bun@1.1.25",
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ]
 }

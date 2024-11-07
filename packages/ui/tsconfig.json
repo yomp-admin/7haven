@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "esModuleInterop": true,
+        "paths": {
+            "@repo/ui": ["./src/"],
+            "@repo/ui/*": ["./src/*"]
+        }
+    }
+}
