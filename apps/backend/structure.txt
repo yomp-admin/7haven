@@ -1,0 +1,6 @@
+/src
+  /middlewares # Authentication and role-based authorization
+  /services    # Business logic and complex operations
+  /config      # Configurations (database, environment variables)
+  /utils       # Utility functions
+index.ts        # Main entry point
