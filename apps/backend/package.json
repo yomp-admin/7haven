@@ -1,7 +1,7 @@
 {
-  "name": "scapi",
+  "name": "backend",
   "version": "0.0.1",
-  "private": true,
+  "type": "module",
   "scripts": {
     "dev": "bun run --hot src/index.ts",
     "build": "bun build src/index.ts --outfile dist/index.js --target bun",
@@ -19,5 +19,8 @@
     "zod": "3.23.8",
     "@node-rs/argon2": "^2.0.0",
     "@repo/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*"
   }
 }

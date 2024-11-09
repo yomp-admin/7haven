@@ -4,6 +4,12 @@
 	import { remult } from '@repo/shared';
 	import { Button } from '@repo/ui';
 
+	let { children, data } = $props();
+
+	$effect(() => {
+		remult.user = data.user;
+	});
+
 	const signOut = async () => {
 		const response = await fetch('/api/auth/sign-out', {
 			method: 'POST'
@@ -14,13 +20,12 @@
 			goto('/');
 		}
 	};
-	let { children } = $props();
 </script>
 
-<div class="container h-screen pt-4">
+<div class="container pt-4">
 	<nav>
-		{#if remult.user}
-			Hello {remult.user.name}
+		{#if data.user}
+			Hello {data.user.name}
 			<Button
 				class="h-6 rounded-sm px-2 text-[10px] text-red-600"
 				variant="outline"

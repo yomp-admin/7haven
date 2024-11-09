@@ -1,13 +1,15 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { remult } from '@repo/shared';
 	import { Button } from '@repo/ui';
 	import { Card } from '@repo/ui';
 	import { Input } from '@repo/ui';
 	import { Label } from '@repo/ui';
 
-	let username = '';
-	let error = '';
+	let username = $state('');
+	let error = $state('');
+
+	let { data } = $props();
 
 	async function signIn() {
 		const response = await fetch('/api/auth/sign-in', {
@@ -20,6 +22,7 @@
 		if (response.ok) {
 			const { data } = await response.json();
 			remult.user = data.userInfo;
+			await invalidateAll();
 			goto('/products');
 		} else {
 			const errorData = await response.json();
@@ -29,8 +32,8 @@
 </script>
 
 <main>
-	{#if !remult.user}
-		<form on:submit|preventDefault={signIn}>
+	{#if !data.user}
+		<form onsubmit={signIn}>
 			<Card.Root class="mx-auto mt-10 max-w-sm">
 				<Card.Header>
 					<Card.Title class="text-2xl">Login</Card.Title>
@@ -75,6 +78,9 @@
 			</Card.Root>
 		</form>
 	{:else}
-		<p>You are already logged in. <a href="/products">Go to Products</a></p>
+		<p>You are already logged in as {remult.user?.name}.<a href="/products">Go to Products</a></p>
+	{/if}
+	{#if data.user?.roles?.includes('admin')}
+		<p>You are already logged in as admin</p>
 	{/if}
 </main>

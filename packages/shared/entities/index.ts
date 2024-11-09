@@ -1,28 +1,36 @@
 import { Fields, Validators, type FieldOptions } from 'remult';
 import { init } from '@paralleldrive/cuid2';
 
-export function publicId<entityType>(
-	prefix: string,
-	length?: number,
-	...options: FieldOptions<entityType, string>[]
+const createCustomId = (prefix: string, length?: number) => {
+  const generator = init({
+    random: () => crypto.getRandomValues(new Uint32Array(1))[0] / 0xffffffff,
+    length,
+    fingerprint: '7haven-customId-fingerprint'
+  });
+  return () => `${prefix}_${generator()}`;
+};
+
+export function publicId<T>(
+  prefix: string,
+  length?: number,
+  ...options: FieldOptions<T, string>[]
 ) {
-	const createId = init({
-		random: Math.random,
-		length,
-		fingerprint: '7haven-custom-publicId-fingerprint'
-	});
+  const generateId = createCustomId(prefix, length);
 
-	const pId = () => `${prefix}_${createId()}`;
-
-	return Fields.string<entityType>(
-		{
-			validate: [Validators.unique],
-			allowApiUpdate: false,
-			defaultValue: pId,
-			saving: (_, record) => {
-				record.value ||= pId();
-			}
-		},
-		...options
-	);
+  return Fields.string<T>(
+    {
+      validate: Validators.unique,
+      allowApiUpdate: false,
+      defaultValue: generateId,
+      saving: (_, record) => {
+        if (!record.value) {
+          record.value = generateId();
+        }
+      }
+    },
+    ...options
+  );
 }
+
+export * from './auth';
+export * from './product';

@@ -1,17 +1,27 @@
 <script lang="ts">
 	import { remult } from '@repo/shared';
-	import { onMount } from 'svelte';
 	import { Product } from '@repo/shared/entities/product';
 	import { ProductController } from '@repo/shared/controllers/product';
 	import { Button } from '@repo/ui';
 	import { Input } from '@repo/ui';
 
-	let products: Product[] = [];
-	let newProduct = { name: '', price: 0.0, description: '' };
+	let products = $state<Product[]>([]);
+	let newProduct = $state({
+		name: '',
+		price: 0.0,
+		description: ''
+	});
 
 	const productRepo = remult.repo(Product);
 
-	onMount(() => {
+	function updateProduct(product: Product, field: keyof Product, value: any) {
+		const index = products.findIndex((p) => p.id === product.id);
+		if (index !== -1) {
+			products[index] = { ...products[index], [field]: value };
+		}
+	}
+
+	$effect(() => {
 		const unsubscribe = productRepo
 			.liveQuery({
 				limit: 20,
@@ -56,7 +66,7 @@
 		<h1 class="text-3xl font-bold">Products</h1>
 		<main class="space-y-6">
 			{#if productRepo.metadata.apiInsertAllowed()}
-				<form on:submit={addProduct} class="space-y-4 rounded-lg border p-6 shadow-sm">
+				<form onsubmit={addProduct} class="space-y-4 rounded-lg border p-6 shadow-sm">
 					<div class="grid gap-4 sm:grid-cols-2">
 						<Input
 							bind:value={newProduct.name}
@@ -97,8 +107,9 @@
 							<tr class="border-b hover:bg-gray-50">
 								<td class="p-2">
 									<Input
-										bind:value={product.name}
-										onchange={() => saveProduct(product)}
+										value={product.name}
+										onchange={(e) => updateProduct(product, 'name', e.currentTarget.value)}
+										onblur={() => saveProduct(product)}
 										class="h-7 w-full rounded-md border-0 px-3 py-0 text-xs shadow-none focus:border"
 									/>
 								</td>
@@ -106,15 +117,18 @@
 									<Input
 										type="number"
 										step="0.01"
-										bind:value={product.price}
-										onchange={() => saveProduct(product)}
+										value={product.price}
+										onchange={(e) =>
+											updateProduct(product, 'price', parseFloat(e.currentTarget.value))}
+										onblur={() => saveProduct(product)}
 										class="h-7 w-full rounded-md border-0 px-3 py-0 text-xs shadow-none focus:border"
 									/>
 								</td>
 								<td class="p-2">
 									<Input
-										bind:value={product.description}
-										onchange={() => saveProduct(product)}
+										value={product.description}
+										onchange={(e) => updateProduct(product, 'description', e.currentTarget.value)}
+										onblur={() => saveProduct(product)}
 										class="h-7 w-full rounded-md border-0 px-3 py-0 text-xs shadow-none focus:border"
 									/>
 								</td>
