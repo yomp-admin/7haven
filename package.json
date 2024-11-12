@@ -5,7 +5,6 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "ui:add": "cd packages/ui && bunx shadcn-svelte@next add",
-    "ui:update": "cd packages/ui && bun run scripts/updateExports.ts",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{js,ts,svelte,md}\""
   },

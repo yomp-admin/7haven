@@ -6,7 +6,7 @@
     "**/CVS": true,
     "**/.DS_Store": true,
     "**/Thumbs.db": true,
-    "**/.svelte-kit": false,
+    "**/.svelte-kit": true,
     "**/.turbo": true,
     "**/.vscode": true,
     "**/node_modules": true

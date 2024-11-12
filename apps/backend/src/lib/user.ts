@@ -1,7 +1,7 @@
 import { encodeBase32 } from '@oslojs/encoding';
 import { hashPassword } from '../utils/password';
 import { authRepo, remult } from '@repo/shared';
-import type { Account } from '@repo/shared/entities/auth/accountEntity';
+import type { User as Account } from '@repo/shared/entities/auth/user';
 
 export function verifyUsernameInput(username: string): boolean {
   return username.length > 3 && username.length < 32 && username.trim() === username;
@@ -33,9 +33,9 @@ export async function getUser(identifier: string): Promise<User | null> {
     { $or: [{ id: identifier }, { email: identifier }, { username: identifier }] },
     {
       include: {
-        otpKeyData: true,
-        keychainKeyData: true,
-        deviceKeyData: true
+        otp: true,
+        passKeys: true,
+        securityKeys: true
       }
     }
   );
@@ -45,9 +45,9 @@ export async function getUser(identifier: string): Promise<User | null> {
   }
 
   const methods = [
-    user.otpKeyData?.length && 'totp',
-    user.keychainKeyData?.length && 'passkey',
-    user.deviceKeyData?.length && 'securityKey'
+    user.otp?.length && 'totp',
+    user.passKeys?.length && 'passkey',
+    user.securityKeys?.length && 'securityKey'
   ].filter(Boolean) as ('totp' | 'passkey' | 'securityKey')[];
 
   return {

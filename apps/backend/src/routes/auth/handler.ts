@@ -6,7 +6,7 @@ import { authRepo, remult, type ErrorInfo } from '@repo/shared';
 import { getUser as check } from '@/lib/user';
 import { result } from '@/utils/responseHandler';
 import { StatusCode } from '@/utils/statusCode';
-import type { TAccount } from '@repo/shared/entities/auth/';
+import type { User as Account } from '@repo/shared/entities/auth/user';
 import { generateSessionToken } from '@/services/auth/session';
 
 export async function signIn(c: Context) {
@@ -43,7 +43,7 @@ export async function signIn(c: Context) {
 
     return c.json(result({ userInfo }), StatusCode.OK);
   } catch (error) {
-    const remultError = error as ErrorInfo<TAccount>;
+    const remultError = error as ErrorInfo<Account>;
     if (remultError.modelState) {
       return c.json(result(remultError.modelState), StatusCode.BAD_REQUEST);
     }

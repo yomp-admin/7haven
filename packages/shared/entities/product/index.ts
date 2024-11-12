@@ -1,5 +1,25 @@
-import { Product } from './product';
+import { Entity, Fields, Validators, Allow } from 'remult';
 
-export const productEntities = [Product];
+@Entity<Product>('products', {
+  allowApiCrud: Allow.authenticated,
+  dbName: 'products'
+})
+export class Product {
+  @Fields.cuid()
+  id!: string;
 
-export { Product };
+  @Fields.string({ validate: [Validators.required] })
+  name!: string;
+
+  @Fields.number({ validate: [Validators.required] })
+  price!: number;
+
+  @Fields.string()
+  description?: string;
+
+  @Fields.createdAt()
+  createdAt!: Date;
+
+  @Fields.updatedAt()
+  updatedAt?: Date;
+}
