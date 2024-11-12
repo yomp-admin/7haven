@@ -142,13 +142,16 @@
 			</p>
 		</div>
 		<div class="mt-3 flex w-full flex-col gap-2">
-			<Button class="w-full px-10 shadow-none" disabled={emailStatus !== true || isCheckingEmail}>
+			<Form.Button
+				class="w-full px-10 shadow-none"
+				disabled={emailStatus !== true || isCheckingEmail}
+			>
 				{#if isCheckingEmail}
 					Checking...
 				{:else}
 					Next
 				{/if}
-			</Button>
+			</Form.Button>
 		</div>
 	</div>
 </div>

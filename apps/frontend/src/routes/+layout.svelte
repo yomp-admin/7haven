@@ -10,8 +10,6 @@
 	});
 </script>
 
-{#if typeof window !== 'undefined'}
-	<ModeWatcher />
-{/if}
+<ModeWatcher />
 
 {@render children?.()}
