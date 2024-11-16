@@ -1,6 +1,6 @@
-import { authRepo, type UserInfo } from '@repo/shared';
+import { getAuthRepo, type UserInfo } from '@repo/shared';
 import type { Context } from 'hono';
-import { config } from '@/config/config';
+import { config } from '../../config/config';
 import { setCookie } from 'hono/cookie';
 import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from '@oslojs/encoding';
 import { sha256 } from '@oslojs/crypto/sha2';
@@ -18,7 +18,7 @@ export function generateSessionToken(): string {
 export async function createSession(token: string, userId: string): Promise<Session> {
   const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 
-  const session = await authRepo.session.insert({
+  const session = await getAuthRepo().session.insert({
     id: sessionId,
     userId,
     expiresAt: new Date(Date.now() + SESSION_EXPIRY)
@@ -29,22 +29,22 @@ export async function createSession(token: string, userId: string): Promise<Sess
 
 export async function validateSessionToken(token: string): Promise<UserInfo | null> {
   const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-  const session = await authRepo.session.findId(sessionId);
+  const session = await getAuthRepo().session.findId(sessionId);
 
   if (!session || new Date() >= session.expiresAt) {
-    if (session) await authRepo.session.delete(sessionId);
+    if (session) await getAuthRepo().session.delete(sessionId);
     return null;
   }
 
-  const user = await authRepo.user.findId(session.userId);
+  const user = await getAuthRepo().user.findId(session.userId);
   if (!user) {
-    await authRepo.session.delete(sessionId);
+    await getAuthRepo().session.delete(sessionId);
     return null;
   }
 
   if (Date.now() >= session.expiresAt.getTime() - SESSION_EXPIRY / 2) {
     session.expiresAt = new Date(Date.now() + SESSION_EXPIRY);
-    await authRepo.session.update(sessionId, {
+    await getAuthRepo().session.update(sessionId, {
       expiresAt: session.expiresAt
     });
   }
@@ -62,7 +62,7 @@ export async function validateSessionToken(token: string): Promise<UserInfo | nu
 }
 
 export async function invalidateSession(sessionId: string): Promise<void> {
-  await authRepo.session.delete(sessionId);
+  await getAuthRepo().session.delete(sessionId);
 }
 
 export function setSessionCookie(c: Context, token: string) {

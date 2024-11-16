@@ -1,10 +1,10 @@
-import { authRepo } from '../../../index';
+import { getAuthRepo } from '../../../index';
 import { BackendMethod } from 'remult';
 
 export class securityKeyController {
   @BackendMethod({ apiPrefix: 'auth/2fa/security-key', allowed: true })
   static async credentials(userId: string): Promise<WebAuthnUserCredential[]> {
-    const credentials = await authRepo.securityKey.find({ where: { userId } });
+    const credentials = await getAuthRepo().securityKey.find({ where: { userId } });
     const result = credentials.map(
       (c): WebAuthnUserCredential => ({
         id: c.id,

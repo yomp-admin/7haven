@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Input } from '@repo/ui/components/input';
-	import { Button } from '@repo/ui/components/button';
 	import { Tooltip } from 'bits-ui';
 	import AtSignIcon from 'lucide-svelte/icons/at-sign';
 	import TallyIcon from 'lucide-svelte/icons/tally-1';
@@ -9,14 +8,24 @@
 	import { formSchema } from './schema';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { superForm } from 'sveltekit-superforms';
-	import { userService } from '@repo/shared';
+	import { getUserService } from '@repo/shared';
+	import { goto } from '$app/navigation';
 
 	let { data } = $props();
 	let isCheckingEmail = $state(false);
-	let emailStatus: null | boolean = $state(null);
+	let emailStatus: null | boolean | 'rate-limited' = $state(null);
 
 	const form = superForm(data.form, {
-		validators: zodClient(formSchema)
+		validators: zodClient(formSchema),
+		onSubmit: ({ cancel }) => {
+			if (isCheckingEmail || emailStatus === 'rate-limited' || !emailStatus) {
+				cancel();
+			}
+		},
+		onUpdated: () => {
+			emailStatus = null;
+			goto('/join/verification');
+		}
 	});
 
 	const { form: formData, enhance } = form;
@@ -25,9 +34,14 @@
 		isCheckingEmail = true;
 		emailStatus = null;
 
-		const result = formSchema.shape.email.safeParse(email);
-		if (result.success) {
-			emailStatus = await userService.user.isEmailAvailable(email);
+		if (formSchema.shape.email.safeParse(email).success) {
+			try {
+				emailStatus = await getUserService().user.is_email_available(email);
+			} catch (error) {
+				emailStatus = (error as Error).message.includes('Too Many Requests')
+					? 'rate-limited'
+					: null;
+			}
 		}
 
 		isCheckingEmail = false;
@@ -73,85 +87,84 @@
 				exclusively yours and will enable you to use our services seamlessly.
 			</p>
 		</div>
-		<div class="flex w-full flex-col gap-1">
-			<form method="POST" use:enhance>
-				<Form.Field {form} name="email">
-					<Form.Control>
-						{#snippet children({ props })}
-							<Form.Label>Email</Form.Label>
-							<div class="relative flex items-center">
-								<Input
-									{...props}
-									bind:value={$formData.email}
-									oninput={() => checkEmailAvailability($formData.email)}
-									class="border-input data-[fs-error]:border-destructive pl-14 pr-24 text-[16px] font-medium shadow-none"
-									placeholder="Enter your business email"
-								/>
-								<div class="absolute left-4 flex items-center gap-x-2.5 opacity-30">
-									<AtSignIcon class="size-3.5" />
-									<TallyIcon class="size-4" />
-								</div>
-								{#if emailStatus !== null}
-									<div
-										class="absolute right-4 flex items-center {emailStatus
-											? 'text-green-500'
-											: 'text-red-500'}"
-									>
-										<CheckCircle class="size-5" />
-									</div>
-								{/if}
+		<form method="POST" use:enhance class="flex flex-col gap-10">
+			<Form.Field {form} name="email">
+				<Form.Control>
+					{#snippet children({ props })}
+						<Form.Label>Email</Form.Label>
+						<div class="relative flex items-center">
+							<Input
+								{...props}
+								bind:value={$formData.email}
+								oninput={() => checkEmailAvailability($formData.email)}
+								class="border-input data-[fs-error]:border-destructive pl-14 pr-24 text-[16px] font-medium shadow-none"
+								placeholder="Enter your business email"
+							/>
+							<div class="absolute left-4 flex items-center gap-x-2.5 opacity-30">
+								<AtSignIcon class="size-3.5" />
+								<TallyIcon class="size-4" />
 							</div>
 							{#if emailStatus !== null}
-								<p
-									class="absolute mt-2 text-[0.8rem] {emailStatus
+								<div
+									class="absolute right-4 flex items-center {emailStatus === true
 										? 'text-green-500'
 										: 'text-red-500'}"
 								>
-									{emailStatus ? 'Looks good!' : 'Not available!'}
-								</p>
+									<CheckCircle class="size-5" />
+								</div>
 							{/if}
-						{/snippet}
-					</Form.Control>
-					<Form.Description />
-					<Form.FieldErrors class="text-destructive" />
-				</Form.Field>
-			</form>
-		</div>
-		<div class="flex w-full flex-col gap-1">
-			<p class="text-muted-foreground text-balance text-center text-xs leading-normal">
-				By continuing, you have read and agree to our
-				<a
-					href="/terms"
-					class="text-brand hover:text-primary underline underline-offset-4 opacity-80"
-				>
-					Service Agreement</a
-				>,
-				<a
-					href="/terms"
-					class="text-brand hover:text-primary underline underline-offset-4 opacity-80"
-				>
-					Free Membership Agreement
-				</a>
-				and
-				<a
-					href="/privacy"
-					class="text-brand hover:text-primary underline underline-offset-4 opacity-80"
-				>
-					Privacy Policy</a
-				>.
-			</p>
-		</div>
-		<div class="mt-3 flex w-full flex-col gap-2">
-			<Form.Button
-				class="w-full px-10 shadow-none"
-				disabled={emailStatus !== true || isCheckingEmail}
-			>
-				{#if isCheckingEmail}
-					Checking...
-				{:else}
-					Next
-				{/if}
-			</Form.Button>
-		</div>
+						</div>
+						{#if emailStatus !== null}
+							<p
+								class="absolute mt-2 text-[0.8rem] {emailStatus === true
+									? 'text-green-500'
+									: 'text-red-500'}"
+							>
+								{#if emailStatus === 'rate-limited'}
+									Too many requests. Please try again after 30 minutes.
+								{:else}
+									{emailStatus ? 'Looks good!' : 'Not available!'}
+								{/if}
+							</p>
+						{/if}
+					{/snippet}
+				</Form.Control>
+				<Form.Description />
+				<Form.FieldErrors class="text-destructive" />
+			</Form.Field>
+			<div class="flex w-full flex-col">
+				<p class="text-muted-foreground text-balance text-center text-xs leading-normal">
+					By continuing, you have read and agree to our
+					<a
+						href="/terms"
+						class="text-brand hover:text-primary underline underline-offset-4 opacity-80"
+					>
+						Service Agreement</a
+					>,
+					<a
+						href="/terms"
+						class="text-brand hover:text-primary underline underline-offset-4 opacity-80"
+					>
+						Free Membership Agreement
+					</a>
+					and
+					<a
+						href="/privacy"
+						class="text-brand hover:text-primary underline underline-offset-4 opacity-80"
+					>
+						Privacy Policy</a
+					>.
+				</p>
+			</div>
+			<div class="flex w-full flex-col">
+				<Form.Button class="w-full shadow-none" disabled={emailStatus !== true || isCheckingEmail}>
+					{#if isCheckingEmail}
+						Checking...
+					{:else}
+						Next
+					{/if}
+				</Form.Button>
+			</div>
+		</form>
 	</div>
 </div>

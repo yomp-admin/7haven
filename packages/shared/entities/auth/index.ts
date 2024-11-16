@@ -5,3 +5,4 @@ export * from './otp';
 export * from './passwordReset';
 export * from './session';
 export * from './user';
+export * from './abac';

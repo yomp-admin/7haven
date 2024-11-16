@@ -10,7 +10,7 @@ import {
   sha256ObjectIdentifier,
   verifyRSASSAPKCS1v15Signature
 } from '@oslojs/crypto/rsa';
-import { authRepo } from '@repo/shared';
+import { getAuthRepo } from '@repo/shared';
 import { encodeHexLowerCase } from '@oslojs/encoding';
 
 const challengeBucket = new Set<string>();
@@ -29,7 +29,7 @@ export function verifyWebAuthnChallenge(challenge: Uint8Array): boolean {
 }
 
 export async function getUserPasskeyCredentials(userId: string): Promise<WebAuthnUserCredential[]> {
-  const credentials = await authRepo.passkey.find({ where: { userId } });
+  const credentials = await getAuthRepo().passkey.find({ where: { userId } });
   return credentials.map((c) => ({
     id: c.id,
     userId: c.userId,
@@ -43,7 +43,7 @@ export async function getUserPasskeyCredential(
   userId: string,
   credentialId: Uint8Array
 ): Promise<WebAuthnUserCredential | null> {
-  const credential = await authRepo.passkey.findFirst({ id: credentialId, userId });
+  const credential = await getAuthRepo().passkey.findFirst({ id: credentialId, userId });
   if (!credential) {
     return null;
   }
@@ -59,7 +59,7 @@ export async function getUserPasskeyCredential(
 export async function getPasskeyCredential(
   credentialId: Uint8Array
 ): Promise<WebAuthnUserCredential | null> {
-  const credential = await authRepo.passkey.findFirst({ id: credentialId });
+  const credential = await getAuthRepo().passkey.findFirst({ id: credentialId });
   if (!credential) {
     return null;
   }
@@ -73,7 +73,7 @@ export async function getPasskeyCredential(
 }
 
 export async function createPasskeyCredential(credential: WebAuthnUserCredential): Promise<void> {
-  await authRepo.passkey.insert({
+  await getAuthRepo().passkey.insert({
     id: credential.id,
     userId: credential.userId,
     name: credential.name,
@@ -83,14 +83,14 @@ export async function createPasskeyCredential(credential: WebAuthnUserCredential
 }
 
 export async function deletePasskeyCredential(credentialId: Uint8Array): Promise<void> {
-  await authRepo.passkey.delete({ id: credentialId });
+  await getAuthRepo().passkey.delete({ id: credentialId });
 }
 
 export async function getUserSecurityKeyCredential(
   userId: string,
   credentialId: Uint8Array
 ): Promise<WebAuthnUserCredential | null> {
-  const credential = await authRepo.securityKey.findFirst({ id: credentialId, userId });
+  const credential = await getAuthRepo().securityKey.findFirst({ id: credentialId, userId });
   if (!credential) {
     return null;
   }
@@ -106,7 +106,7 @@ export async function getUserSecurityKeyCredential(
 export async function createSecurityKeyCredential(
   credential: WebAuthnUserCredential
 ): Promise<void> {
-  await authRepo.securityKey.create({
+  await getAuthRepo().securityKey.create({
     id: credential.id,
     userId: credential.userId,
     name: credential.name,
@@ -116,7 +116,7 @@ export async function createSecurityKeyCredential(
 }
 
 export async function deleteSecurityKeyCredential(credentialId: Uint8Array): Promise<void> {
-  await authRepo.securityKey.delete({ id: credentialId });
+  await getAuthRepo().securityKey.delete({ id: credentialId });
 }
 
 export const verifySignature = (

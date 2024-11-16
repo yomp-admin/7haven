@@ -13,8 +13,8 @@ import { p256, ECDSAPublicKey } from '@oslojs/crypto/ecdsa';
 import { decodeBase64, decodeBase64urlIgnorePadding } from '@oslojs/encoding';
 import { sha256 } from '@oslojs/crypto/sha2';
 import { RSAPublicKey } from '@oslojs/crypto/rsa';
-import { result } from '@/utils/responseHandler';
-import { StatusCode } from '@/utils/statusCode';
+import { result } from '../../../utils/responseHandler';
+import { StatusCode } from '../../../utils/statusCode';
 import {
   createPasskeyCredential,
   deletePasskeyCredential,
@@ -24,11 +24,15 @@ import {
   verifySignature,
   verifyWebAuthnChallenge,
   type WebAuthnUserCredential
-} from '@/lib/auth/webauthn';
-import { authRepo, remult } from '@repo/shared';
-import { config } from '@/config/config';
+} from '../../../lib/auth/webauthn';
+import { getAuthRepo, remult } from '@repo/shared';
+import { config } from '../../../config/config';
 import type { Context } from 'hono';
-import { createSession, generateSessionToken, setSessionCookie } from '@/services/auth/session';
+import {
+  createSession,
+  generateSessionToken,
+  setSessionCookie
+} from '../../../services/auth/session';
 
 const MAX_CREDENTIALS = 1;
 
@@ -102,13 +106,13 @@ export async function signInWithPasskey(c: Context): Promise<Response> {
     return c.json(result('Invalid signature'), StatusCode.BAD_REQUEST);
   }
 
-  await authRepo.user.update(credential.userId, { twoFactorVerified: true });
+  await getAuthRepo().user.update(credential.userId, { twoFactorVerified: true });
 
   const token = generateSessionToken();
   const session = await createSession(token, credential.userId);
   setSessionCookie(c, token);
 
-  const user = await authRepo.user.findId(credential.userId);
+  const user = await getAuthRepo().user.findId(credential.userId);
   if (!user) {
     return c.json(result('Error fetching user'), StatusCode.INTERNAL_SERVER_ERROR);
   }
@@ -207,7 +211,7 @@ export async function registerPasskey(c: Context): Promise<Response> {
   }
 
   await createPasskeyCredential(credential);
-  await authRepo.user.update(credential.userId, { twoFactorVerified: true });
+  await getAuthRepo().user.update(credential.userId, { twoFactorVerified: true });
 
   return c.json(result('Passkey registered successfully'), StatusCode.OK);
 }
@@ -258,7 +262,7 @@ export async function verifyPasskey(c: Context): Promise<Response> {
     return c.json(result('Invalid signature'), StatusCode.BAD_REQUEST);
   }
 
-  await authRepo.user.update(credential.userId, { twoFactorVerified: true });
+  await getAuthRepo().user.update(credential.userId, { twoFactorVerified: true });
 
   return c.json(result('Passkey verified successfully'), StatusCode.OK);
 }

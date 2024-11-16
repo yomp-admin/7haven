@@ -31,3 +31,5 @@ export function publicId<T>(
     ...options
   );
 }
+
+export * from './abac';

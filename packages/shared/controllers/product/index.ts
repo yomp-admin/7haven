@@ -1,25 +1,37 @@
-import { BackendMethod, remult, Allow } from 'remult';
+import { BackendMethod } from 'remult';
 import { Product } from '../../entities/product';
-import { productRepo } from '../../index';
+import { getProductRepo } from '../../index';
 
 export class ProductController {
-  @BackendMethod({ apiPrefix: 'product', allowed: Allow.authenticated })
+  @BackendMethod({
+    apiPrefix: 'product',
+    allowed: true
+  })
   static async insert(product: Partial<Product>) {
-    return await productRepo.product.insert(product);
+    return await getProductRepo().product.insert(product);
   }
 
-  @BackendMethod({ apiPrefix: 'product', allowed: Allow.authenticated })
+  @BackendMethod({
+    apiPrefix: 'product',
+    allowed: true
+  })
   static async update(id: string, product: Partial<Product>) {
-    return await productRepo.product.update(id, product);
+    return await getProductRepo().product.update(id, product);
   }
 
-  @BackendMethod({ apiPrefix: 'product', allowed: Allow.authenticated })
+  @BackendMethod({
+    apiPrefix: 'product',
+    allowed: true
+  })
   static async delete(id: string) {
-    return await productRepo.product.delete(id);
+    return await getProductRepo().product.delete(id);
   }
 
-  @BackendMethod({ apiPrefix: 'product', allowed: Allow.authenticated })
+  @BackendMethod({
+    apiPrefix: 'product',
+    allowed: true
+  })
   static async item(id: string) {
-    return await productRepo.product.findId(id);
+    return await getProductRepo().product.findId(id);
   }
 }

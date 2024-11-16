@@ -1,3 +1,5 @@
+import { RemultContext } from 'remult';
+
 declare module 'remult' {
   export interface UserInfo {
     session: {
@@ -9,6 +11,9 @@ declare module 'remult' {
 
   export interface FieldOptions<entityType, valueType> {
     placeholderText?: string;
+  }
+  export interface Remult {
+    readonly context: RemultContext;
   }
 }
 

@@ -1,36 +1,36 @@
 import { BackendMethod, remult } from 'remult';
-import { authRepo } from '../../../index';
+import { getAuthRepo } from '../../../index';
 
 export class userController {
   @BackendMethod({ allowed: true })
-  static async signOut() {
+  static async sign_out() {
     if (remult.user?.session.id) {
-      await authRepo.session.delete(remult.user.session.id);
+      await getAuthRepo().session.delete(remult.user.session.id);
       remult.user = undefined;
     }
     return { success: true };
   }
 
   @BackendMethod({ allowed: true })
-  static async signInDemo(name: string) {
-    let user = await authRepo.user.findFirst({ username: name });
+  static async sign_in_demo(name: string) {
+    let user = await getAuthRepo().user.findFirst({ username: name });
 
     if (!user) {
-      user = authRepo.user.create();
+      user = getAuthRepo().user.create();
       user.username = name;
       user.roles = ['Admin'];
-      await authRepo.user.save(user);
+      await getAuthRepo().user.save(user);
     }
   }
 
   @BackendMethod({ allowed: true })
-  static async currentUser() {
+  static async current_user() {
     return remult.user;
   }
 
-  @BackendMethod({ allowed: true })
-  static async isEmailAvailable(email: string): Promise<boolean> {
-    const user = await authRepo.user.findFirst({ email });
+  @BackendMethod({ allowed: true, apiPrefix: 'auth' })
+  static async is_email_available(email: string): Promise<boolean> {
+    const user = await getAuthRepo().user.findFirst({ email });
     return !user;
   }
 }

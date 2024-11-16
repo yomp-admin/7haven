@@ -1,7 +1,9 @@
 import { encodeBase32 } from '@oslojs/encoding';
 import { hashPassword } from '../utils/password';
-import { authRepo, remult } from '@repo/shared';
+import { getAuthRepo, remult } from '@repo/shared';
 import type { User as Account } from '@repo/shared/entities/auth/user';
+import { AbacController } from '@repo/shared/controllers/auth/abac';
+import { ResourceAction } from '@repo/shared/entities/auth/abac';
 
 export function verifyUsernameInput(username: string): boolean {
   return username.length > 3 && username.length < 32 && username.trim() === username;
@@ -17,7 +19,7 @@ export async function createUser(
     generateRandomRecoveryCode()
   ]);
 
-  const user = authRepo.user.create({
+  const user = getAuthRepo().user.create({
     email,
     username,
     passwordHash,
@@ -25,11 +27,23 @@ export async function createUser(
     recoveryCode
   });
 
-  return await authRepo.user.save(user);
+  const savedUser = await getAuthRepo().user.save(user);
+
+  // Initialize default permissions
+  const defaultPermissions: ResourceAction[] = [
+    { resource: 'product', action: 'read' },
+    { resource: 'product', action: 'create' },
+    { resource: 'product', action: 'update' },
+    { resource: 'product', action: 'delete' }
+  ];
+
+  await AbacController.initializeUserPermissions(savedUser.id, defaultPermissions);
+
+  return savedUser;
 }
 
 export async function getUser(identifier: string): Promise<User | null> {
-  const user = await authRepo.user.findFirst(
+  const user = await getAuthRepo().user.findFirst(
     { $or: [{ id: identifier }, { email: identifier }, { username: identifier }] },
     {
       include: {
@@ -63,17 +77,17 @@ export async function getUser(identifier: string): Promise<User | null> {
 }
 
 export async function getUserPasswordHash(userId: string): Promise<string | null> {
-  const user = await authRepo.user.findId(userId);
+  const user = await getAuthRepo().user.findId(userId);
   return user?.passwordHash ?? null;
 }
 
 export async function getUserRecoveryCode(userId: string): Promise<string | null> {
-  const user = await authRepo.user.findId(userId);
+  const user = await getAuthRepo().user.findId(userId);
   return user?.recoveryCode ?? null;
 }
 
 export async function getUserTOTPKey(userId: string): Promise<Uint8Array | null> {
-  const otpKey = await authRepo.otp.findId(userId);
+  const otpKey = await getAuthRepo().otp.findId(userId);
   return otpKey?.key ?? null;
 }
 
@@ -83,16 +97,16 @@ export async function verifyUserRecoveryCode(
 ): Promise<boolean> {
   const newRecoveryCode = generateRandomRecoveryCode();
   try {
-    const user = await authRepo.user.findFirst({ id: userId, recoveryCode });
+    const user = await getAuthRepo().user.findFirst({ id: userId, recoveryCode });
     if (!user) {
       return false;
     }
     await remult.dataProvider.transaction(async () => {
       await Promise.all([
-        authRepo.user.update(userId, { recoveryCode: newRecoveryCode }),
-        authRepo.otp.delete({ userId }),
-        authRepo.passkey.delete({ userId }),
-        authRepo.securityKey.delete({ userId })
+        getAuthRepo().user.update(userId, { recoveryCode: newRecoveryCode }),
+        getAuthRepo().otp.delete({ userId }),
+        getAuthRepo().passkey.delete({ userId }),
+        getAuthRepo().securityKey.delete({ userId })
       ]);
     });
     return true;
@@ -104,20 +118,20 @@ export async function verifyUserRecoveryCode(
 export async function resetUserRecoveryCode(userId: string): Promise<string> {
   const recoveryCode = generateRandomRecoveryCode();
 
-  const user = await authRepo.user.findFirst({ id: userId });
+  const user = await getAuthRepo().user.findFirst({ id: userId });
   if (!user) {
     throw new Error('Invalid user ID');
   }
-  await authRepo.user.update(userId, { recoveryCode });
+  await getAuthRepo().user.update(userId, { recoveryCode });
   return recoveryCode;
 }
 
 export async function verifyUserEmail(userId: string, email: string): Promise<void> {
-  const user = await authRepo.user.findFirst({ id: userId });
+  const user = await getAuthRepo().user.findFirst({ id: userId });
   if (!user) {
     throw new Error('Invalid user ID');
   }
-  await authRepo.user.update(userId, { emailVerified: true, email });
+  await getAuthRepo().user.update(userId, { emailVerified: true, email });
 }
 
 export async function updateUserPasswordWithEmailVerification(
@@ -127,13 +141,13 @@ export async function updateUserPasswordWithEmailVerification(
 ): Promise<void> {
   const passwordHash = await hashPassword(password);
   await remult.dataProvider.transaction(async () => {
-    const user = await authRepo.user.findFirst({ id: userId, email });
+    const user = await getAuthRepo().user.findFirst({ id: userId, email });
     if (!user) {
       throw new Error('Invalid user ID');
     }
     await Promise.all([
-      authRepo.user.update(userId, { passwordHash }),
-      authRepo.session.delete({ userId })
+      getAuthRepo().user.update(userId, { passwordHash }),
+      getAuthRepo().session.delete({ userId })
     ]);
   });
 }
@@ -146,8 +160,8 @@ export async function updateUserPassword(
   const passwordHash = await hashPassword(password);
   await remult.dataProvider.transaction(async () => {
     await Promise.all([
-      authRepo.session.delete({ id: sessionId }),
-      authRepo.user.update(userId, { passwordHash })
+      getAuthRepo().session.delete({ id: sessionId }),
+      getAuthRepo().user.update(userId, { passwordHash })
     ]);
   });
 }
@@ -159,10 +173,10 @@ export async function updateUserTOTPKey(
 ): Promise<void> {
   await remult.dataProvider.transaction(async () => {
     await Promise.all([
-      authRepo.otp.delete({ userId }),
-      authRepo.otp.insert({ userId, key }),
-      authRepo.session.delete({ id: sessionId }),
-      authRepo.session.update({ id: sessionId }, { two_factor_verified: false } as any)
+      getAuthRepo().otp.delete({ userId }),
+      getAuthRepo().otp.insert({ userId, key }),
+      getAuthRepo().session.delete({ id: sessionId }),
+      getAuthRepo().session.update({ id: sessionId }, { two_factor_verified: false } as any)
     ]);
   });
 }

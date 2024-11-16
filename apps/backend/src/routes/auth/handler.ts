@@ -1,27 +1,40 @@
-import { createSession, setSessionCookie, clearSessionCookie } from '@/services/auth/session';
-import { createWebAuthnChallenge } from '@/lib/auth/webauthn';
+import { createSession, setSessionCookie, clearSessionCookie } from '../../services/auth/session';
+import { createWebAuthnChallenge } from '../../lib/auth/webauthn';
 import { encodeBase64 } from '@oslojs/encoding';
 import type { Context } from 'hono';
-import { authRepo, remult, type ErrorInfo } from '@repo/shared';
-import { getUser as check } from '@/lib/user';
-import { result } from '@/utils/responseHandler';
-import { StatusCode } from '@/utils/statusCode';
+import { getAuthRepo, remult, type ErrorInfo } from '@repo/shared';
+import { getUser as check } from '../../lib/user';
+import { result } from '../../utils/responseHandler';
+import { StatusCode } from '../../utils/statusCode';
 import type { User as Account } from '@repo/shared/entities/auth/user';
-import { generateSessionToken } from '@/services/auth/session';
+import { generateSessionToken } from '../../services/auth/session';
+import { AbacController } from '@repo/shared/controllers/auth/abac';
+import { ResourceAction } from '@repo/shared/entities/auth/abac';
 
 export async function signIn(c: Context) {
   const body = await c.req.json();
   const { username } = body;
 
   try {
-    const user = authRepo.user.create({ email: username });
-    await authRepo.user.validate(user);
+    const user = getAuthRepo().user.create({ email: username });
+    await getAuthRepo().user.validate(user);
 
-    let existingUser = await authRepo.user.findFirst({ email: username });
+    let existingUser = await getAuthRepo().user.findFirst({ email: username });
 
     if (!existingUser) {
       user.roles = ['admin'];
-      existingUser = await authRepo.user.save(user);
+
+      // Initialize default permissions
+      const defaultPermissions: ResourceAction[] = [
+        { resource: 'product', action: 'read' },
+        { resource: 'product', action: 'create' },
+        { resource: 'product', action: 'update' },
+        { resource: 'product', action: 'delete' }
+      ];
+
+      await AbacController.initializeUserPermissions(user.id, defaultPermissions);
+
+      existingUser = await getAuthRepo().user.save(user);
     }
 
     const token = generateSessionToken();
@@ -53,7 +66,7 @@ export async function signIn(c: Context) {
 
 export async function signOut(c: Context) {
   if (remult.user?.session.id) {
-    await authRepo.session.delete(remult.user.session.id);
+    await getAuthRepo().session.delete(remult.user.session.id);
     remult.user = undefined;
     clearSessionCookie(c);
     return c.json(result('Signed out successfully'), StatusCode.OK);
@@ -82,5 +95,5 @@ export const getUser = async (c: Context) => {
 };
 
 export async function checkForExistingUser(username: string): Promise<boolean> {
-  return (await authRepo.user.count({ email: username })) > 0;
+  return (await getAuthRepo().user.count({ email: username })) > 0;
 }
