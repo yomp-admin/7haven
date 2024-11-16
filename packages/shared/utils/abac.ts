@@ -1,5 +1,7 @@
 import { remult, Filter, ForbiddenError, EntityFilter } from 'remult';
 import { getAuthRepo } from '../index';
+import { ResourceAction } from '../entities/auth';
+import { AbacController } from '../controllers/auth/abac';
 
 const CACHE_TTL = 5 * 60 * 1000;
 
@@ -83,6 +85,20 @@ export async function initializePermissions(userId: string): Promise<PermissionC
   return entry;
 }
 
+export async function initialize_default_permissions(
+  userId: string,
+  defaultPermissions: ResourceAction[]
+): Promise<{ success: boolean }> {
+  try {
+    for (const permission of defaultPermissions) {
+      await AbacController.grant_user_permission(userId, permission);
+    }
+    return { success: true };
+  } catch (error) {
+    return { success: false };
+  }
+}
+
 /**
  * Creates an ABAC filter for entity queries
  * @param resource - The resource type to filter
@@ -121,3 +137,36 @@ export const createAbacFilter = <T extends { ownerId: string }>(
     return filter;
   });
 };
+
+type ShortAction = 'r' | 'c' | 'u' | 'd' | '*';
+type ResourcePermission = {
+  resource: string;
+  action: ShortAction | ShortAction[];
+};
+
+export function expandPermissions(permissions: ResourcePermission[]): ResourceAction[] {
+  const actionMap = {
+    r: 'read',
+    c: 'create',
+    u: 'update',
+    d: 'delete'
+  } as const;
+
+  return permissions.flatMap(({ resource, action }) => {
+    const actions = Array.isArray(action) ? action : [action];
+
+    return actions.flatMap((act) => {
+      if (act === '*') {
+        return Object.values(actionMap).map((fullAction) => ({
+          resource,
+          action: fullAction
+        }));
+      }
+
+      return {
+        resource,
+        action: actionMap[act]
+      };
+    });
+  });
+}

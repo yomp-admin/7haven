@@ -8,7 +8,11 @@ import { result } from '../../utils/responseHandler';
 import { StatusCode } from '../../utils/statusCode';
 import type { User as Account } from '@repo/shared/entities/auth/user';
 import { generateSessionToken } from '../../services/auth/session';
-import { AbacController } from '@repo/shared/controllers/auth/abac';
+import {
+  expandPermissions,
+  initialize_default_permissions,
+  initializePermissions
+} from '@repo/shared/utils';
 import { ResourceAction } from '@repo/shared/entities/auth/abac';
 
 export async function signIn(c: Context) {
@@ -22,17 +26,11 @@ export async function signIn(c: Context) {
     let existingUser = await getAuthRepo().user.findFirst({ email: username });
 
     if (!existingUser) {
-      user.roles = ['admin'];
+      user.roles = ['seller'];
 
-      // Initialize default permissions
-      const defaultPermissions: ResourceAction[] = [
-        { resource: 'product', action: 'read' },
-        { resource: 'product', action: 'create' },
-        { resource: 'product', action: 'update' },
-        { resource: 'product', action: 'delete' }
-      ];
+      const defaultPermissions = expandPermissions([{ resource: 'product', action: '*' }]);
 
-      await AbacController.initializeUserPermissions(user.id, defaultPermissions);
+      await initialize_default_permissions(user.id, defaultPermissions);
 
       existingUser = await getAuthRepo().user.save(user);
     }

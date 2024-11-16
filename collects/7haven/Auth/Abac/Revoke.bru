@@ -1,0 +1,26 @@
+meta {
+  name: Revoke
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3491/api/auth/revoke_user_permission
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "args": [
+      "b4k5uiwc7v3src50mxwtpwym",
+      {
+        "resource": "product",
+        "action": "read",
+        "attributes": {
+          "businessId": "123"
+        }
+      }
+    ]
+  }
+}

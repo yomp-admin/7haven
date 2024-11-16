@@ -1,0 +1,26 @@
+meta {
+  name: Grant
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:3491/api/auth/grant_user_permission
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "args": [
+      "b4k5uiwc7v3src50mxwtpwym",
+      {
+        "resource": "product",
+        "action": "read",
+        "attributes": {
+          "businessId": "1234"
+        }
+      }
+    ]
+  }
+}

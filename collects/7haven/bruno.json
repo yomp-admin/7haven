@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "7haven",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
