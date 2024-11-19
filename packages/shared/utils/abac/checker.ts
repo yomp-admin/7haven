@@ -7,9 +7,9 @@ export interface BusinessContext extends BusinessConditions {
 }
 
 export class PermissionChecker {
-  private userId: string;
-  private cached: Map<string, CachedPermission>;
-  private ownedBusinesses: Set<string>;
+  private readonly userId: string;
+  private readonly cached: Map<string, CachedPermission>;
+  private readonly ownedBusinesses: Set<string>;
 
   constructor(userId: string) {
     this.userId = userId;
@@ -23,12 +23,8 @@ export class PermissionChecker {
   }
 
   getBusinessIds(): string[] {
-    const businessIds = new Set<string>();
+    const businessIds = new Set<string>(this.ownedBusinesses);
 
-    // Add owned businesses
-    this.ownedBusinesses.forEach((id) => businessIds.add(id));
-
-    // Add businesses where user has a role
     for (const [key, permission] of Array.from(this.cached.entries())) {
       if (key.startsWith('role:')) {
         businessIds.add(permission.businessId);
@@ -39,26 +35,17 @@ export class PermissionChecker {
   }
 
   can(action: string, resource: string, context?: BusinessContext): boolean {
-    // Admin override
     if (remult.isAllowed('admin')) return true;
 
-    // Business context check
     if (context?.businessId) {
-      // Check business ownership first
       if (this.isBusinessOwner(context.businessId)) return true;
 
-      const businessRole = this.cached.get(context.businessId);
-
-      // Role-based permission check
-      if (businessRole?.role) {
-        const hasPermission = this.hasRolePermission(businessRole.role, resource, action);
-        if (hasPermission) {
-          return this.checkConditions(context);
-        }
+      const businessRole = this.cached.get(`role:${context.businessId}`);
+      if (businessRole?.role && this.hasRolePermission(businessRole.role, resource, action)) {
+        return this.checkConditions(context);
       }
     }
 
-    // Direct permission check
     const permissionKey = `${resource}:${action}`;
     const permission = this.cached.get(permissionKey);
 
@@ -67,11 +54,9 @@ export class PermissionChecker {
 
   private hasRolePermission(role: BusinessRole, resource: string, action: string): boolean {
     const permissions = BUSINESS_ROLES[role];
-    return permissions.some((perm) => {
-      if (perm === '*:*') return true;
-      if (perm === `${resource}:*`) return true;
-      return perm === `${resource}:${action}`;
-    });
+    return permissions.some(
+      (perm) => perm === '*:*' || perm === `${resource}:*` || perm === `${resource}:${action}`
+    );
   }
 
   private checkConditions(context: BusinessContext): boolean {
@@ -80,11 +65,9 @@ export class PermissionChecker {
 
     return Object.entries(permission.conditions).every(([key, value]) => {
       if (key === 'features' && Array.isArray(value)) {
-        const contextFeatures = context.features || [];
-        return value.every((feature) => contextFeatures.includes(feature));
+        return value.every((feature) => context.features?.includes(feature));
       }
-      const contextValue = context[key as keyof BusinessContext];
-      return contextValue === value;
+      return context[key as keyof BusinessContext] === value;
     });
   }
 }

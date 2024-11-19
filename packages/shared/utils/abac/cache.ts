@@ -8,6 +8,7 @@ export interface CachedPermission {
   role?: BusinessRole;
   resource?: Resource;
   action?: Action<Resource>;
+  timestamp: number;
 }
 
 export interface PermissionCacheEntry {
@@ -18,10 +19,11 @@ export interface PermissionCacheEntry {
 }
 
 const CACHE_TTL = 5 * 60 * 1000;
+const CACHE_CLEANUP_INTERVAL = 10 * 60 * 1000;
 const permissionCache = new Map<string, PermissionCacheEntry>();
 
 export const cache = {
-  get: (userId: string) => {
+  get: (userId: string): PermissionCacheEntry | null => {
     const cached = permissionCache.get(userId);
     if (!cached || Date.now() - cached.timestamp >= CACHE_TTL) return null;
     return cached;
@@ -31,7 +33,7 @@ export const cache = {
     userId: string,
     permissions: Map<string, CachedPermission>,
     ownedBusinesses: Set<string>
-  ) => {
+  ): void => {
     permissionCache.set(userId, {
       permissions,
       ownedBusinesses,
@@ -40,53 +42,43 @@ export const cache = {
     });
   },
 
-  clear: (userId?: string) => {
-    if (userId) {
-      permissionCache.delete(userId);
-    } else {
-      permissionCache.clear();
-    }
+  clear: (userId?: string): void => {
+    userId ? permissionCache.delete(userId) : permissionCache.clear();
   },
 
   init: async (userId: string): Promise<void> => {
     try {
-      // Get owned businesses first
-      const ownedBusinesses = await getBusinessRepo().business.find({
-        where: { ownerId: userId }
-      });
+      const [ownedBusinesses, permissions] = await Promise.all([
+        getBusinessRepo().business.find({ where: { ownerId: userId } }),
+        getAuthRepo().permission.find({ where: { userId, isAllowed: true } })
+      ]);
 
       const permissionsMap = new Map<string, CachedPermission>();
-      const ownedBusinessIds = new Set<string>();
+      const ownedBusinessIds = new Set(ownedBusinesses.map((b) => b.id));
+      const now = Date.now();
 
-      // Just store owned business IDs
-      for (const business of ownedBusinesses) {
-        ownedBusinessIds.add(business.id);
-      }
-
-      // Get regular permissions
-      const permissions = await getAuthRepo().permission.find({
-        where: { userId, isAllowed: true }
-      });
-
-      // Add regular permissions
       for (const permission of permissions) {
         if (ownedBusinessIds.has(permission.businessId)) continue;
 
+        const basePermission: CachedPermission = {
+          allowed: true,
+          businessId: permission.businessId,
+          conditions: permission.conditions,
+          timestamp: now
+        };
+
         if (permission.role) {
           permissionsMap.set(`role:${permission.businessId}`, {
-            allowed: true,
-            role: permission.role,
-            businessId: permission.businessId,
-            conditions: permission.conditions || {}
+            ...basePermission,
+            role: permission.role
           });
         }
 
         if (permission.resource && permission.action) {
-          const key = `${permission.resource}:${permission.action}`;
-          permissionsMap.set(key, {
-            allowed: true,
-            businessId: permission.businessId,
-            conditions: permission.conditions || {}
+          permissionsMap.set(`${permission.resource}:${permission.action}`, {
+            ...basePermission,
+            resource: permission.resource,
+            action: permission.action
           });
         }
       }
@@ -110,3 +102,12 @@ export const cache = {
     }
   }
 };
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [userId, entry] of Array.from(permissionCache.entries())) {
+    if (now - entry.timestamp >= CACHE_TTL) {
+      permissionCache.delete(userId);
+    }
+  }
+}, CACHE_CLEANUP_INTERVAL);

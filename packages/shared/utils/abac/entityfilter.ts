@@ -16,7 +16,7 @@ export class EntityFilter {
       const checker = new PermissionChecker(user.id);
       const businessIds = checker.getBusinessIds();
 
-      if (businessIds.length === 0) {
+      if (!businessIds.length) {
         throw new ForbiddenError('No business access');
       }
 
