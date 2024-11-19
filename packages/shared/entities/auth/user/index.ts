@@ -6,6 +6,7 @@ import { PassKey } from '../passKey';
 import { Otp } from '../otp';
 import { PasswordReset } from '../passwordReset';
 import { Session } from '../session';
+import { Business } from '../../business';
 
 @Entity<User>('users', {
   allowApiCrud: true,
@@ -88,4 +89,7 @@ export class User {
 
   @Relations.toMany<User, Session>(() => Session, 'userId')
   sessions?: Session[];
+
+  @Relations.toMany<User, Business>(() => Business, 'ownerId')
+  businesses?: Business[];
 }

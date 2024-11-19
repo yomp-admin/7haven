@@ -1,5 +1,12 @@
 import { Allow, Entity, Fields, Relations, Validators } from 'remult';
 import { User } from '../user';
+import { Business } from '../../business';
+import {
+  type BusinessRole,
+  type Resource,
+  type Action,
+  type BusinessConditions
+} from '../../../utils/abac/permissions';
 
 @Entity<Permission>('permissions', {
   allowApiCrud: Allow.authenticated,
@@ -15,19 +22,28 @@ export class Permission {
   @Relations.toOne(() => User, { field: 'userId' })
   user?: User;
 
-  @Fields.string({ validate: [Validators.required] })
-  resource!: string;
+  @Fields.string()
+  businessId!: string;
 
-  @Fields.string({ validate: [Validators.required] })
-  action!: string;
+  @Relations.toOne(() => Business, { field: 'businessId' })
+  business?: Business;
 
-  @Fields.object<Permission, Record<string, any>>({
+  @Fields.string()
+  resource!: Resource;
+
+  @Fields.string()
+  action!: Action<Resource>;
+
+  @Fields.string()
+  role!: BusinessRole;
+
+  @Fields.object<Permission, BusinessConditions>({
     valueConverter: {
-      toDb: (x) => JSON.stringify(x),
-      fromDb: (x) => JSON.parse(x || '{}')
+      toDb: (value) => (value ? JSON.stringify(value) : '{}'),
+      fromDb: (value) => (value ? JSON.parse(value) : {})
     }
   })
-  attributes: Record<string, any> = {};
+  conditions: BusinessConditions = {};
 
   @Fields.boolean({ defaultValue: () => true })
   isAllowed!: boolean;
@@ -37,10 +53,4 @@ export class Permission {
 
   @Fields.updatedAt()
   updatedAt?: Date;
-}
-
-export interface ResourceAction {
-  resource: string;
-  action: string;
-  attributes?: Record<string, any>;
 }

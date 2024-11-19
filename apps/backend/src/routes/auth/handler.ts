@@ -2,18 +2,12 @@ import { createSession, setSessionCookie, clearSessionCookie } from '../../servi
 import { createWebAuthnChallenge } from '../../lib/auth/webauthn';
 import { encodeBase64 } from '@oslojs/encoding';
 import type { Context } from 'hono';
-import { getAuthRepo, remult, type ErrorInfo } from '@repo/shared';
+import { cache, getAuthRepo, remult, type ErrorInfo } from '@repo/shared';
 import { getUser as check } from '../../lib/user';
 import { result } from '../../utils/responseHandler';
 import { StatusCode } from '../../utils/statusCode';
 import type { User as Account } from '@repo/shared/entities/auth/user';
 import { generateSessionToken } from '../../services/auth/session';
-import {
-  expandPermissions,
-  initialize_default_permissions,
-  initializePermissions
-} from '@repo/shared/utils';
-import { ResourceAction } from '@repo/shared/entities/auth/abac';
 
 export async function signIn(c: Context) {
   const body = await c.req.json();
@@ -26,12 +20,7 @@ export async function signIn(c: Context) {
     let existingUser = await getAuthRepo().user.findFirst({ email: username });
 
     if (!existingUser) {
-      user.roles = ['seller'];
-
-      const defaultPermissions = expandPermissions([{ resource: 'product', action: '*' }]);
-
-      await initialize_default_permissions(user.id, defaultPermissions);
-
+      user.roles = ['none'];
       existingUser = await getAuthRepo().user.save(user);
     }
 
@@ -64,9 +53,11 @@ export async function signIn(c: Context) {
 
 export async function signOut(c: Context) {
   if (remult.user?.session.id) {
+    cache.clear(remult.user.id);
     await getAuthRepo().session.delete(remult.user.session.id);
     remult.user = undefined;
     clearSessionCookie(c);
+
     return c.json(result('Signed out successfully'), StatusCode.OK);
   }
   return c.json(result('Error Signing Out'), StatusCode.INTERNAL_SERVER_ERROR);

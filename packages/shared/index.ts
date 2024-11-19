@@ -1,14 +1,22 @@
 import { remult, type ErrorInfo, type UserInfo } from 'remult';
-import { authEntities, productEntities } from './entities';
-import { authServices, productServices } from './controllers';
+import { authEntities, businessEntities, productEntities } from './entities';
+import { authServices, businessServices, productServices } from './controllers';
 
 export { remult, ErrorInfo, UserInfo };
 
 export * from './types';
 export * from './utils';
-export const entities = [...Object.values(authEntities), ...Object.values(productEntities)];
+export const entities = [
+  ...Object.values(authEntities),
+  ...Object.values(productEntities),
+  ...Object.values(businessEntities)
+];
 
-export const controllers = [...Object.values(authServices), ...Object.values(productServices)];
+export const controllers = [
+  ...Object.values(authServices),
+  ...Object.values(productServices),
+  ...Object.values(businessServices)
+];
 
 export function getAuthRepo() {
   return {
@@ -28,7 +36,11 @@ export function getProductRepo() {
     product: remult.repo(productEntities.Product)
   };
 }
-
+export function getBusinessRepo() {
+  return {
+    business: remult.repo(businessEntities.Business)
+  };
+}
 export function getUserService() {
   return {
     user: authServices.userController,

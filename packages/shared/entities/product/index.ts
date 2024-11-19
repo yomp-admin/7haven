@@ -1,13 +1,16 @@
-import { Entity, Fields, Validators, remult } from 'remult';
-import { can, createAbacFilter } from '../../utils/abac';
+import { Entity, Fields, Validators, remult, Relations, ForbiddenError } from 'remult';
+import { abac, EntityFilter } from '../../utils/abac';
+import { Business } from '../business';
 
+function can(action: string) {
+  return abac.can(action, 'product', { businessId: 'dmtuh9tjeyoi13ikovm6g8xw' });
+}
 @Entity<Product>('products', {
-  allowApiInsert: () => can.do('create', 'product'),
-  allowApiRead: () => can.do('read', 'product'),
-  allowApiUpdate: () => can.do('update', 'product'),
-  allowApiDelete: () => can.do('delete', 'product', { ownerId: remult.user?.id }),
-  apiPrefilter: () => Product.abac(),
-  dbName: 'products'
+  allowApiInsert: () => can('create'),
+  allowApiRead: () => can('read'),
+  allowApiUpdate: () => can('update'),
+  allowApiDelete: () => can('delete'),
+  apiPrefilter: () => Product.canRead()
 })
 export class Product {
   @Fields.cuid()
@@ -22,11 +25,21 @@ export class Product {
   @Fields.string()
   description?: string;
 
-  @Fields.string({ allowApiUpdate: false })
-  ownerId = remult.user?.id || '';
+  @Fields.string({ allowNull: true })
+  categoryId?: string;
 
-  @Fields.string()
-  business?: string;
+  @Fields.string({
+    validate: [Validators.required]
+  })
+  businessId!: string;
+
+  @Relations.toOne(() => Business, 'businessId')
+  business?: Business;
+
+  @Fields.boolean({
+    defaultValue: () => false
+  })
+  isPublished!: boolean;
 
   @Fields.createdAt()
   createdAt!: Date;
@@ -34,5 +47,5 @@ export class Product {
   @Fields.updatedAt()
   updatedAt?: Date;
 
-  static abac = createAbacFilter<Product>('product');
+  static canRead = EntityFilter.create<Product>('product', 'read');
 }

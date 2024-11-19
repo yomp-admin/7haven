@@ -1,0 +1,20 @@
+meta {
+  name: Product Cre
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3491/api/products
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Seller added Product 4",
+    "price": "1800",
+    "description": "1 TB",
+    "businessId": "dmtuh9tjeyoi13ikovm6g8xw"
+  }
+}

@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: http://localhost:3491/api/auth/grant_user_permission
+  url: http://localhost:3491/api/auth/grant_permission
   body: json
   auth: none
 }
@@ -13,13 +13,13 @@ post {
 body:json {
   {
     "args": [
-      "b4k5uiwc7v3src50mxwtpwym",
+      "rdc9ojxnlsi5irjb5d9pk2u3",
       {
-        "resource": "product",
-        "action": "read",
-        "attributes": {
-          "businessId": "1234"
-        }
+        "resource": "*",
+        "action": "*",
+        "businessId": "bhm7rmw5q01c1jyegvbksedi",
+        "conditions": {},
+        "isAllowed": true
       }
     ]
   }

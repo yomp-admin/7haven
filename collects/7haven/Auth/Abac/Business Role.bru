@@ -1,0 +1,21 @@
+meta {
+  name: Business Role
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:3491/api/auth/grant_business_role
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "args": [{
+      "userId": "req4rcq6kv2cqfcl5pghm6ah",
+      "businessId": "bhm7rmw5q01c1jyegvbksedi",
+      "role": "staff"
+    }]
+  }
+}

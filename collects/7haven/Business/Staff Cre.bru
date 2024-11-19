@@ -1,0 +1,38 @@
+meta {
+  name: Staff Cre
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3491/api/business/add_staff_member
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "args": [
+      {
+        "businessId": "dmtuh9tjeyoi13ikovm6g8xw",
+        "userId": "v46qrthhlomzdnowosb6ryz4",
+        "role": "staff",
+        "permissions": [
+          {
+            "resource": "product",
+            "actions": [
+              "read"
+            ]
+          },
+          {
+            "resource": "order",
+            "actions": [
+              "read",
+              "update"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+meta {
+  name: Create
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:3491/api/business/create_business
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "args": [
+      {
+        "name": "My Test Store",
+        "settings": {
+          "allowMultipleStores": false,
+          "maxProducts": 100,
+          "features": [
+          ]
+        }
+      }
+    ]
+  }
+}

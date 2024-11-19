@@ -27,19 +27,19 @@ export async function createSession(token: string, userId: string): Promise<Sess
   return session;
 }
 
-export async function validateSessionToken(token: string): Promise<UserInfo | null> {
+export async function validateSessionToken(token: string): Promise<UserInfo | undefined> {
   const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
   const session = await getAuthRepo().session.findId(sessionId);
 
   if (!session || new Date() >= session.expiresAt) {
     if (session) await getAuthRepo().session.delete(sessionId);
-    return null;
+    return undefined;
   }
 
   const user = await getAuthRepo().user.findId(session.userId);
   if (!user) {
     await getAuthRepo().session.delete(sessionId);
-    return null;
+    return undefined;
   }
 
   if (Date.now() >= session.expiresAt.getTime() - SESSION_EXPIRY / 2) {

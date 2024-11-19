@@ -2,8 +2,6 @@ import { encodeBase32 } from '@oslojs/encoding';
 import { hashPassword } from '../utils/password';
 import { getAuthRepo, remult } from '@repo/shared';
 import type { User as Account } from '@repo/shared/entities/auth/user';
-import { AbacController } from '@repo/shared/controllers/auth/abac';
-import { ResourceAction } from '@repo/shared/entities/auth/abac';
 
 export function verifyUsernameInput(username: string): boolean {
   return username.length > 3 && username.length < 32 && username.trim() === username;
@@ -28,16 +26,6 @@ export async function createUser(
   });
 
   const savedUser = await getAuthRepo().user.save(user);
-
-  // Initialize default permissions
-  const defaultPermissions: ResourceAction[] = [
-    { resource: 'product', action: 'read' },
-    { resource: 'product', action: 'create' },
-    { resource: 'product', action: 'update' },
-    { resource: 'product', action: 'delete' }
-  ];
-
-  await AbacController.initializeUserPermissions(savedUser.id, defaultPermissions);
 
   return savedUser;
 }

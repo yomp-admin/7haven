@@ -1,15 +1,14 @@
 import { Hono } from 'hono';
 import { remultHono } from 'remult/remult-hono';
 import { config } from '../config/config';
-import { controllers, entities } from '@repo/shared';
+import { cache, controllers, entities } from '@repo/shared';
+import { getCookie } from 'hono/cookie';
+import { setupRateLimits } from '../routes/router';
 import {
   clearSessionCookie,
   setSessionCookie,
   validateSessionToken
 } from '../services/auth/session';
-import { getCookie } from 'hono/cookie';
-import { setupRateLimits } from '../routes/router';
-import { initializePermissions } from '@repo/shared/utils';
 
 export const setupRemult = (app: Hono) => {
   const api = remultHono({
@@ -30,8 +29,12 @@ export const setupRemult = (app: Hono) => {
         return undefined;
       }
 
+      const cached = cache.get(userInfo.id);
+      if (!cached) {
+        await cache.init(userInfo.id);
+      }
+
       setSessionCookie(c, token);
-      await initializePermissions(userInfo.id);
       return userInfo;
     },
     error: async (info) => {
