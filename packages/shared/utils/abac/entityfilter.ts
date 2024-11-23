@@ -17,7 +17,7 @@ export class EntityFilter {
       const businessIds = checker.getBusinessIds();
 
       if (!businessIds.length) {
-        throw new ForbiddenError('No business access');
+        throw new ForbiddenError('Insufficient permissions');
       }
 
       const filter: Record<string, any> = {

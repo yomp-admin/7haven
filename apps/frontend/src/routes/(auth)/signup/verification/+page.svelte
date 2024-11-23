@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Input } from '@repo/ui/components/input';
-	import { Button } from '@repo/ui/components/button';
-	import * as Card from '@repo/ui/components/card';
-	import { Label } from '@repo/ui/components/label';
+	import { Input } from '@repo/ui/components/ui/input';
+	import { Button } from '@repo/ui/components/ui/button';
+	import * as Card from '@repo/ui/components/ui/card';
+	import { Label } from '@repo/ui/components/ui/label';
 	import { goto } from '$app/navigation';
 </script>
 

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { Activity, CreditCard, DollarSign, Download, Users, ArrowUpRight } from 'lucide-svelte';
-	import { Button } from '@repo/ui/components/button';
-	import * as Card from '@repo/ui/components/card';
-	import * as Tabs from '@repo/ui/components/tabs';
-	import * as Avatar from '@repo/ui/components/avatar';
-	import * as Table from '@repo/ui/components/table';
-	import { Badge } from '@repo/ui/components/badge';
+	import { Button } from '@repo/ui/components/ui/button';
+	import * as Card from '@repo/ui/components/ui/card';
+	import * as Tabs from '@repo/ui/components/ui/tabs';
+	import * as Avatar from '@repo/ui/components/ui/avatar';
+	import * as Table from '@repo/ui/components/ui/table';
+	import { Badge } from '@repo/ui/components/ui/badge';
 </script>
 
 <div class="hidden flex-col pb-4 md:flex">

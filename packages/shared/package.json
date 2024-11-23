@@ -3,6 +3,6 @@
   "version": "0.0.1",
   "type": "module",
   "dependencies": {
-    "remult": "0.27.22"
+    "remult": "0.27.23"
   }
 }

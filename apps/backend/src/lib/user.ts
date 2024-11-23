@@ -1,5 +1,4 @@
 import { encodeBase32 } from '@oslojs/encoding';
-import { hashPassword } from '../utils/password';
 import { getAuthRepo, remult } from '@repo/shared';
 import type { User as Account } from '@repo/shared/entities/auth/user';
 
@@ -12,10 +11,7 @@ export async function createUser(
   username: string,
   password: string
 ): Promise<Account> {
-  const [passwordHash, recoveryCode] = await Promise.all([
-    hashPassword(password),
-    generateRandomRecoveryCode()
-  ]);
+  const [passwordHash, recoveryCode] = await Promise.all(['', generateRandomRecoveryCode()]);
 
   const user = getAuthRepo().user.create({
     email,
@@ -127,7 +123,7 @@ export async function updateUserPasswordWithEmailVerification(
   email: string,
   password: string
 ): Promise<void> {
-  const passwordHash = await hashPassword(password);
+  const passwordHash = '';
   await remult.dataProvider.transaction(async () => {
     const user = await getAuthRepo().user.findFirst({ id: userId, email });
     if (!user) {
@@ -145,7 +141,7 @@ export async function updateUserPassword(
   userId: string,
   password: string
 ): Promise<void> {
-  const passwordHash = await hashPassword(password);
+  const passwordHash = '';
   await remult.dataProvider.transaction(async () => {
     await Promise.all([
       getAuthRepo().session.delete({ id: sessionId }),

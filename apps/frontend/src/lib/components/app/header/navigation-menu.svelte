@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Input } from '@repo/ui/components/input';
+	import { Input } from '@repo/ui/components/ui/input';
 	import { setMode, resetMode, mode } from 'mode-watcher';
 
 	import SearchIcon from 'lucide-svelte/icons/search';
@@ -15,9 +15,9 @@
 	import LightModeIcon from 'lucide-svelte/icons/sun';
 	import SystemModeIcon from 'lucide-svelte/icons/tv-minimal';
 
-	import * as DropdownMenu from '@repo/ui/components/dropdown-menu';
-	import { Button } from '@repo/ui/components/button';
-	import * as Tooltip from '@repo/ui/components/tooltip';
+	import * as DropdownMenu from '@repo/ui/components/ui/dropdown-menu';
+	import { Button } from '@repo/ui/components/ui/button';
+	import * as Tooltip from '@repo/ui/components/ui/tooltip';
 	import LogOutIcon from 'lucide-svelte/icons/log-out';
 
 	let ThemeMode: 'light' | 'dark' | 'system' = $state($mode ?? 'system');

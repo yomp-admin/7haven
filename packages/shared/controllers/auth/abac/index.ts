@@ -1,5 +1,5 @@
 import { BackendMethod, Allow, remult, ForbiddenError } from 'remult';
-import { cache, getAuthRepo, getBusinessRepo } from '../../../index';
+import { cache, getAuthRepo } from '../../../index';
 import {
   type BusinessRole,
   type Resource,
@@ -71,7 +71,7 @@ export class AbacController {
   ): Promise<{ success: boolean; message?: string }> {
     const hasAccess = await AbacController.validateBusinessAccess(action.businessId);
     if (!hasAccess) {
-      throw new ForbiddenError();
+      throw new ForbiddenError('Insufficient permissions');
     }
 
     const existingPermission = await AbacController.findPermission(userId, action);

@@ -2,15 +2,9 @@
 	import BusinessSwitcher from './header/business-switcher.svelte';
 	import NavigationMenu from './header/navigation-menu.svelte';
 	import Sidebar from './sidenav/sidebar.svelte';
-	import { ScrollArea } from '@repo/ui/components/scroll-area';
+	import { ScrollArea } from '@repo/ui/components/ui/scroll-area';
 
-	interface Props {
-		children?: import('svelte').Snippet;
-	}
-
-	let { children }: Props = $props();
-
-	const children_render = $derived(children);
+	let { children } = $props();
 </script>
 
 <div class="grid h-screen grid-cols-[clamp(180px,15vw,210px)_1fr,auto] grid-rows-[60px_1fr] pl-5">
@@ -24,7 +18,7 @@
 		<Sidebar />
 	</div>
 	<ScrollArea class="bg-background col-[2/3] row-[2/3] px-10 pt-2">
-		{@render children_render?.()}
+		{@render children?.()}
 	</ScrollArea>
 	<div class="bg-background col-[3/4] row-[1/3] pl-1">
 		<div class="flex h-full w-10 items-center border-l">

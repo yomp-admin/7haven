@@ -1,170 +1,195 @@
 <script lang="ts">
-	import { Input } from '@repo/ui/components/input';
-	import { Tooltip } from 'bits-ui';
-	import AtSignIcon from 'lucide-svelte/icons/at-sign';
-	import TallyIcon from 'lucide-svelte/icons/tally-1';
-	import { CheckCircle } from 'lucide-svelte';
-	import * as Form from '@repo/ui/components/form';
+	import { Input } from '@repo/ui/components/ui/input';
+	import { AtSign, CheckCircle } from 'lucide-svelte';
+	import * as Form from '@repo/ui/components/ui/form';
 	import { formSchema } from './schema';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { superForm } from 'sveltekit-superforms';
 	import { getUserService } from '@repo/shared';
 	import { goto } from '$app/navigation';
+	import { debounce } from '@/utils';
+
+	type EmailStatus = null | boolean | 'rate-limited' | 'checking';
+
+	const DEBOUNCE_MS = 500;
+	const ERROR_MESSAGES = {
+		rateLimited: 'Too many requests. Please try again after 30 minutes.',
+		valid: 'Looks good!',
+		invalid: 'Not available!'
+	} as const;
 
 	let { data } = $props();
 	let isCheckingEmail = $state(false);
-	let emailStatus: null | boolean | 'rate-limited' = $state(null);
+	let emailStatus = $state<EmailStatus>(null);
 
 	const form = superForm(data.form, {
 		validators: zodClient(formSchema),
-		onSubmit: ({ cancel }) => {
-			if (isCheckingEmail || emailStatus === 'rate-limited' || !emailStatus) {
-				cancel();
-			}
-		},
-		onUpdated: () => {
-			emailStatus = null;
-			goto('/join/verification');
-		}
+		onSubmit: handleFormSubmit
 	});
 
 	const { form: formData, enhance } = form;
 
-	async function checkEmailAvailability(email: string) {
-		isCheckingEmail = true;
-		emailStatus = null;
+	$effect(() => {
+		debouncedUpdate($formData.email);
+	});
 
-		if (formSchema.shape.email.safeParse(email).success) {
-			try {
-				emailStatus = await getUserService().user.is_email_available(email);
-			} catch (error) {
-				emailStatus = (error as Error).message.includes('Too Many Requests')
-					? 'rate-limited'
-					: null;
-			}
+	const debouncedUpdate = debounce(validateEmail, DEBOUNCE_MS);
+
+	async function validateEmail(email: string) {
+		if (!isValidEmailFormat(email)) {
+			resetEmailStatus();
+			return;
 		}
 
+		isCheckingEmail = true;
+		emailStatus = 'checking';
+
+		try {
+			emailStatus = await getUserService().user.is_email_available(email);
+		} catch (error) {
+			emailStatus = (error as Error).message.includes('Too Many Requests') ? 'rate-limited' : null;
+		} finally {
+			isCheckingEmail = false;
+		}
+	}
+
+	function isValidEmailFormat(email: string | undefined): boolean {
+		return Boolean(email && formSchema.shape.email.safeParse(email).success);
+	}
+
+	function resetEmailStatus(): void {
+		emailStatus = null;
 		isCheckingEmail = false;
 	}
+
+	async function handleFormSubmit({ cancel }: { cancel: () => void }): Promise<void> {
+		if (!(emailStatus === true && !isCheckingEmail)) {
+			console.log('Invalid email');
+			cancel();
+			return;
+		}
+		await goto('/join/verification');
+	}
+
+	function getStatusMessage(): string {
+		if (emailStatus === 'checking') {
+			return 'Checking';
+		}
+		if (emailStatus === 'rate-limited') return ERROR_MESSAGES.rateLimited;
+		if (emailStatus === true) return ERROR_MESSAGES.valid;
+		if (emailStatus === false) return ERROR_MESSAGES.invalid;
+		return '';
+	}
+
+	const by_email_status = $derived({
+		isValid: emailStatus === true && !isCheckingEmail,
+		statusColor:
+			emailStatus === 'checking' ? '' : emailStatus === true ? 'text-green-500' : 'text-red-500'
+	});
 </script>
 
-<div class="flex h-full w-full flex-col items-center justify-between">
-	<div class="flex w-full grow flex-col items-center justify-center gap-10 pb-4 md:max-w-xl">
-		<h1 class="mb-4 flex flex-col gap-2 text-center">
-			<span class="pb-5 text-xl font-medium leading-none">Let's create your</span>
-			<span class="text-3xl font-semibold leading-none">7Haven Seller Account</span>
-		</h1>
-		<h2 class="text-center text-xl font-semibold">Choose your username</h2>
-		<div class="flex w-full flex-row justify-stretch gap-2">
-			<div class="flex w-full">
-				<Tooltip.Provider>
-					<Tooltip.Root>
-						<Tooltip.Trigger class="bg-accent-foreground h-2 w-full rounded"></Tooltip.Trigger>
-						<Tooltip.Content>
-							<Tooltip.Arrow class="border-t" />
-							<div
-								class="bg-background shadow-popover flex items-center justify-center rounded-sm border px-2 text-[11px] font-medium outline-none"
-							>
-								Choose your username
-							</div>
-						</Tooltip.Content>
-					</Tooltip.Root>
-				</Tooltip.Provider>
-			</div>
-			<div class="flex w-full">
-				<div class="bg-accent h-2 w-full rounded"></div>
-			</div>
-			<div class="flex w-full">
-				<div class="bg-accent h-2 w-full rounded"></div>
-			</div>
-			<div class="flex w-full">
-				<div class="bg-accent h-2 w-full rounded"></div>
-			</div>
-		</div>
-		<div class="flex flex-col gap-2">
-			<p class="text-pretty text-center">
-				Your username will be your unique identifier across the entire 7Haven ecosystem. It is
-				exclusively yours and will enable you to use our services seamlessly.
-			</p>
-		</div>
-		<form method="POST" use:enhance class="flex flex-col gap-10">
-			<Form.Field {form} name="email">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>Email</Form.Label>
-						<div class="relative flex items-center">
-							<Input
-								{...props}
-								bind:value={$formData.email}
-								oninput={() => checkEmailAvailability($formData.email)}
-								class="border-input data-[fs-error]:border-destructive pl-14 pr-24 text-[16px] font-medium shadow-none"
-								placeholder="Enter your business email"
-							/>
-							<div class="absolute left-4 flex items-center gap-x-2.5 opacity-30">
-								<AtSignIcon class="size-3.5" />
-								<TallyIcon class="size-4" />
-							</div>
-							{#if emailStatus !== null}
-								<div
-									class="absolute right-4 flex items-center {emailStatus === true
-										? 'text-green-500'
-										: 'text-red-500'}"
-								>
-									<CheckCircle class="size-5" />
-								</div>
-							{/if}
-						</div>
-						{#if emailStatus !== null}
-							<p
-								class="absolute mt-2 text-[0.8rem] {emailStatus === true
-									? 'text-green-500'
-									: 'text-red-500'}"
-							>
-								{#if emailStatus === 'rate-limited'}
-									Too many requests. Please try again after 30 minutes.
-								{:else}
-									{emailStatus ? 'Looks good!' : 'Not available!'}
-								{/if}
-							</p>
-						{/if}
-					{/snippet}
-				</Form.Control>
-				<Form.Description />
-				<Form.FieldErrors class="text-destructive" />
-			</Form.Field>
-			<div class="flex w-full flex-col">
-				<p class="text-muted-foreground text-balance text-center text-xs leading-normal">
-					By continuing, you have read and agree to our
-					<a
-						href="/terms"
-						class="text-brand hover:text-primary underline underline-offset-4 opacity-80"
-					>
-						Service Agreement</a
-					>,
-					<a
-						href="/terms"
-						class="text-brand hover:text-primary underline underline-offset-4 opacity-80"
-					>
-						Free Membership Agreement
-					</a>
-					and
-					<a
-						href="/privacy"
-						class="text-brand hover:text-primary underline underline-offset-4 opacity-80"
-					>
-						Privacy Policy</a
-					>.
+<div class="flex h-full w-full flex-col items-center justify-between gap-5">
+	<div class="flex w-full grow flex-col items-center justify-center gap-10 md:max-w-xl">
+		<div class="flex w-full flex-col items-center space-y-8">
+			<div class="flex w-full flex-col items-center space-y-2 text-center">
+				<h1 class="text-2xl font-semibold tracking-tight">Create your Seller Account</h1>
+				<p class="text-muted-foreground text-sm">
+					Enter your email to get started. We'll send you a verification code.
 				</p>
 			</div>
-			<div class="flex w-full flex-col">
-				<Form.Button class="w-full shadow-none" disabled={emailStatus !== true || isCheckingEmail}>
-					{#if isCheckingEmail}
-						Checking...
-					{:else}
-						Next
-					{/if}
-				</Form.Button>
+
+			<div class="w-full max-w-md">
+				<form method="POST" class="space-y-8" use:enhance>
+					<Form.Field {form} name="email" class="flex w-full flex-col items-center">
+						<Form.Control>
+							{#snippet children({ props })}
+								<div class="relative w-full">
+									<Input
+										type="email"
+										placeholder="you@example.com"
+										class="h-12 pl-10 pr-10 text-lg"
+										spellcheck="false"
+										autocorrect="off"
+										autocapitalize="off"
+										autocomplete="off"
+										{...props}
+										bind:value={$formData.email}
+									/>
+									<span class="text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2">
+										<AtSign class="size-5" />
+									</span>
+									{#if emailStatus === true && !isCheckingEmail}
+										<div class="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
+											<CheckCircle class="size-5" />
+										</div>
+									{/if}
+								</div>
+								{#if emailStatus !== null}
+									<p
+										class="mt-2 w-full text-xs {emailStatus === 'checking'
+											? 'loading-dots'
+											: ''} {by_email_status.statusColor}"
+									>
+										{getStatusMessage()}
+									</p>
+								{/if}
+							{/snippet}
+						</Form.Control>
+						<Form.FieldErrors class="text-destructive w-full" />
+						<Form.Description>We'll never share your email with anyone else.</Form.Description>
+					</Form.Field>
+					<div class="space-y-4">
+						<Form.Button class="w-full" disabled={!by_email_status.isValid}>Get Started</Form.Button
+						>
+						<p class="text-muted-foreground text-balance text-center text-xs leading-normal">
+							By continuing, you have read and agree to our
+							<a
+								href="/terms"
+								class="text-brand/60 hover:text-brand/80 underline underline-offset-4"
+							>
+								Service Agreement</a
+							>,
+							<a
+								href="/terms"
+								class="text-brand/60 hover:text-brand/80 underline underline-offset-4"
+							>
+								Free Membership Agreement
+							</a>
+							and
+							<a
+								href="/privacy"
+								class="text-brand/60 hover:text-brand/80 underline underline-offset-4"
+							>
+								Privacy Policy</a
+							>.
+						</p>
+					</div>
+				</form>
 			</div>
-		</form>
+		</div>
 	</div>
 </div>
+
+<style>
+	.loading-dots::after {
+		content: '';
+		animation: dots 1.5s infinite;
+	}
+
+	@keyframes dots {
+		0%,
+		20% {
+			content: '';
+		}
+		40% {
+			content: '.';
+		}
+		60% {
+			content: '..';
+		}
+		80%,
+		100% {
+			content: '...';
+		}
+	}
+</style>

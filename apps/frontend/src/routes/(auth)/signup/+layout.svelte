@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { BrandIcon } from '$lib/components/icons/logo';
-	import { Button } from '@repo/ui/components/button';
+	import { Button } from '@repo/ui/components/ui/button';
 	import { goto } from '$app/navigation';
 	interface Props {
 		children?: import('svelte').Snippet;

@@ -1,12 +1,10 @@
 import { BackendMethod, Allow, remult, ForbiddenError } from 'remult';
-import { cache, getAuthRepo, getBusinessRepo } from '../../index';
+import { cache, getBusinessRepo } from '../../index';
 import { abac, PermissionManager as pm } from '../../utils/abac';
 import {
   Action,
-  BUSINESS_ROLES,
   BusinessConditions,
   Resource,
-  RESOURCE_PERMISSIONS,
   type BusinessRole
 } from '../../utils/abac/permissions';
 
@@ -27,7 +25,7 @@ export class BusinessController {
     conditions?: BusinessConditions;
   }) {
     if (input.role === 'seller') {
-      throw new ForbiddenError('Cannot assign seller role through staff management');
+      throw new ForbiddenError('Insufficient permissions');
     }
 
     await pm.grantRoleWithPermissions(

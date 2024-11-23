@@ -3,22 +3,17 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "ui:add": "bunx shadcn-svelte@next add",
+    "ui:add": "bun x shadcn-svelte@next add",
     "lint": "eslint ."
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
-    "bits-ui": "^1.0.0-next.59",
-    "clsx": "^2.1.1",
-    "formsnap": "^2.0.0-next.1",
-    "prettier-plugin-tailwindcss": "^0.6.5",
-    "svelte-radix": "^2.0.1",
-    "sveltekit-superforms": "^2.20.0",
+    "lucide-svelte": "^0.460.1",
+    "prettier-plugin-tailwindcss": "^0.6.9",
     "tailwind-merge": "^2.5.4",
     "tailwind-variants": "0.3.0",
-    "tailwindcss": "^3.4.9",
-    "tailwindcss-animate": "^1.0.7",
-    "zod": "^3.23.8"
+    "tailwindcss": "^3.4.15",
+    "tailwindcss-animate": "^1.0.7"
   },
   "exports": {
     "./components": "./src/components/index.ts",
@@ -31,7 +26,12 @@
     }
   },
   "dependencies": {
-    "lucide-svelte": "0.460.1",
-    "mode-watcher": "^0.4.1"
+    "clsx": "^2.1.1",
+    "bits-ui": "^1.0.0-next.64",
+    "svelte-radix": "^2.0.1",
+    "mode-watcher": "0.5.0",
+    "sveltekit-superforms": "^2.20.1",
+    "formsnap": "^2.0.0-next.1",
+    "zod": "^3.23.8"
   }
 }

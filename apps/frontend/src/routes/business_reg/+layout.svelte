@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { BrandIcon } from '$lib/components/icons/logo';
-	import { Button } from '@repo/ui/components/button';
+	import { Button } from '@repo/ui/components/ui/button';
 	import { CircleUser } from 'lucide-svelte';
-	import * as DropdownMenu from '@repo/ui/components/dropdown-menu/index.js';
+	import * as DropdownMenu from '@repo/ui/components/ui/dropdown-menu/index.js';
 	interface Props {
 		children?: import('svelte').Snippet;
 	}
@@ -22,7 +22,7 @@
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger>
 					{#snippet child({ props })}
-						<Button {...props} variant="secondary" size="icon" class="rounded-full">
+						<Button variant="secondary" size="icon" class="rounded-full">
 							<CircleUser class="h-5 w-5" />
 							<span class="sr-only">Toggle user menu</span>
 						</Button>

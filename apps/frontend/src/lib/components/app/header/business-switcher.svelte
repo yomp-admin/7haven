@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { Check, ChevronsUpDown, CirclePlus } from 'lucide-svelte';
 	import { cn } from '@repo/ui/utils';
-	import * as Avatar from '@repo/ui/components/avatar';
+	import * as Avatar from '@repo/ui/components/ui/avatar';
 	import { StoreIcon } from '$lib/components/icons/store-icon';
-	import { Button } from '@repo/ui/components/button';
-	import * as Command from '@repo/ui/components/command';
-	import * as Dialog from '@repo/ui/components/dialog';
-	import { Input } from '@repo/ui/components/input';
-	import { Label } from '@repo/ui/components/label';
-	import * as Popover from '@repo/ui/components/popover';
-	import * as Select from '@repo/ui/components/select';
+	import { Button } from '@repo/ui/components/ui/button';
+	import * as Command from '@repo/ui/components/ui/command';
+	import * as Dialog from '@repo/ui/components/ui/dialog';
+	import { Input } from '@repo/ui/components/ui/input';
+	import { Label } from '@repo/ui/components/ui/label';
+	import * as Popover from '@repo/ui/components/ui/popover';
+	import * as Select from '@repo/ui/components/ui/select';
 	import { tick } from 'svelte';
 
 	interface Props {

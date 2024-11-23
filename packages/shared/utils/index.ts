@@ -1,13 +1,15 @@
 import { Fields, Validators, type FieldOptions } from 'remult';
-import { init } from '@paralleldrive/cuid2';
+import { encodeBase32 } from '@oslojs/encoding';
 
-const createCustomId = (prefix: string, length?: number) => {
-  const generator = init({
-    random: () => crypto.getRandomValues(new Uint32Array(1))[0] / 0xffffffff,
-    length,
-    fingerprint: '7haven-customId-fingerprint'
-  });
-  return () => `${prefix}_${generator()}`;
+export * from './abac';
+
+const createCustomId = (length?: number) => {
+  return () => {
+    const bytes = new Uint8Array(length || 8);
+    crypto.getRandomValues(bytes);
+    const id = encodeBase32(bytes);
+    return id;
+  };
 };
 
 export function publicId<T>(
@@ -15,21 +17,19 @@ export function publicId<T>(
   length?: number,
   ...options: FieldOptions<T, string>[]
 ) {
-  const generateId = createCustomId(prefix, length);
-
+  const generateId = createCustomId(length);
+  const defaultValue = `${prefix}_${generateId()}`;
   return Fields.string<T>(
     {
       validate: Validators.unique,
       allowApiUpdate: false,
-      defaultValue: generateId,
+      defaultValue: () => defaultValue,
       saving: (_, record) => {
         if (!record.value) {
-          record.value = generateId();
+          record.value = defaultValue;
         }
       }
     },
     ...options
   );
 }
-
-export * from './abac';

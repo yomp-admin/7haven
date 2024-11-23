@@ -9,7 +9,7 @@ export const StatusCode = {
   CONFLICT: 409,
   UNPROCESSABLE_ENTITY: 422,
   TOO_MANY_REQUESTS: 429,
-  INTERNAL_SERVER_ERROR: 500,
+  INTERNAL_SERVER_ERROR: 500
 } as const;
 
 export type StatusCode = (typeof StatusCode)[keyof typeof StatusCode];
