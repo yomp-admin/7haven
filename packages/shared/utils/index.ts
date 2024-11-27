@@ -1,15 +1,24 @@
 import { Fields, Validators, type FieldOptions } from 'remult';
 import { encodeBase32 } from '@oslojs/encoding';
+import { init } from '@paralleldrive/cuid2';
 
-export * from './abac';
+export * from '../utils/abac';
+
+const randomCasing = (str: string) => {
+  return str
+    .split('')
+    .map((char) => (Math.random() > 0.5 ? char.toUpperCase() : char.toLowerCase()))
+    .join('');
+};
 
 const createCustomId = (length?: number) => {
-  return () => {
-    const bytes = new Uint8Array(length || 8);
-    crypto.getRandomValues(bytes);
-    const id = encodeBase32(bytes);
-    return id;
-  };
+  return () =>
+    randomCasing(
+      init({
+        length: length || 14,
+        fingerprint: '7haven-custom-publicId-fingerprint'
+      })()
+    );
 };
 
 export function publicId<T>(
@@ -17,8 +26,8 @@ export function publicId<T>(
   length?: number,
   ...options: FieldOptions<T, string>[]
 ) {
-  const generateId = createCustomId(length);
-  const defaultValue = `${prefix}_${generateId()}`;
+  const id = createCustomId(length);
+  const defaultValue = [prefix, id()].join('_');
   return Fields.string<T>(
     {
       validate: Validators.unique,
@@ -32,4 +41,12 @@ export function publicId<T>(
     },
     ...options
   );
+}
+
+export function verifyExpirationDate(expiresAt: Date): boolean {
+  return Date.now() < expiresAt.getTime();
+}
+
+export function generateRandomOTP(): string {
+  return createCustomId(6)();
 }

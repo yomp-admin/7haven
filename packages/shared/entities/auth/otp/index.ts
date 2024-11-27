@@ -15,8 +15,11 @@ export class Otp {
   @Relations.toOne(() => User, { field: 'userId' })
   user?: User;
 
-  @Field(() => Uint8Array)
-  key!: Uint8Array;
+  @Fields.string()
+  code!: string;
+
+  @Fields.date()
+  expiresAt!: Date;
 
   @Fields.createdAt()
   createdAt!: Date;

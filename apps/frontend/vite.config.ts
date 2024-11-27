@@ -17,12 +17,5 @@ export default defineConfig({
 		alias: {
 			'@repo/ui': path.resolve('../../packages/ui/src')
 		}
-	},
-	server: {
-		proxy: {
-			'/api': {
-				target: 'http://localhost:3491'
-			}
-		}
 	}
 });

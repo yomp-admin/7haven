@@ -9,7 +9,7 @@
 
 	const steps = [
 		{ id: 1, name: 'Email', href: '/join', icon: Mail },
-		{ id: 2, name: 'Verify', href: '/join/verification', icon: CheckCircle2 },
+		{ id: 2, name: 'Verify', href: '/join/verify', icon: CheckCircle2 },
 		{ id: 3, name: 'Secure', href: '/join/secure', icon: ShieldCheck }
 	];
 

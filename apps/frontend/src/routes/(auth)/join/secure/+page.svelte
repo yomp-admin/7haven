@@ -1,17 +1,21 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { Button } from '@repo/ui/components/ui/button';
 	import { Input } from '@repo/ui/components/ui/input';
 	import * as Form from '@repo/ui/components/ui/form';
 	import FingerprintIcon from 'lucide-svelte/icons/fingerprint';
 	import EyeIcon from 'lucide-svelte/icons/eye';
 	import EyeOffIcon from 'lucide-svelte/icons/eye-off';
+	import LockIcon from 'lucide-svelte/icons/lock';
 	import { formSchema, calculatePasswordStrength } from './schema';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { superForm } from 'sveltekit-superforms';
 	import { cn } from '@repo/ui/utils';
+	import { Card } from '@repo/ui/components/ui/card';
+	import { Badge } from '@repo/ui/components/ui/badge';
+	import { slide, fade } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
 
 	let { data } = $props();
+
 	let showPassword = $state(false);
 	let showConfirmPassword = $state(false);
 	let passwordStrength = $state(0);
@@ -20,7 +24,7 @@
 		validators: zodClient(formSchema)
 	});
 
-	const { form: formData, enhance } = form;
+	const { form: formData, enhance, allErrors } = form;
 
 	let meetsAllRequirements = $derived(
 		$formData.password
@@ -40,7 +44,7 @@
 		}
 	});
 
-	function getStrengthGradientColor(strength: number): string {
+	function getStrengthColor(strength: number): string {
 		if (!meetsAllRequirements) {
 			return strength < 30 ? '' : '#eab308';
 		}
@@ -53,6 +57,9 @@
 		}
 		return 'Strong';
 	}
+
+	let selected = $state<'passkey' | 'password'>('passkey');
+	const setSelected = (value: 'passkey' | 'password') => (selected = value);
 </script>
 
 <div class="flex h-full w-full flex-col items-center justify-between gap-5">
@@ -64,166 +71,236 @@
 			</div>
 
 			<div class="w-full max-w-md space-y-6">
-				<div class="rounded-lg border p-4">
-					<div class="flex items-center justify-between">
-						<div class="flex items-center space-x-4">
-							<div class="bg-primary/10 rounded-full p-2">
-								<FingerprintIcon class="text-primary size-5" />
-							</div>
-							<div>
-								<h3 class="text-sm font-medium">Passkey</h3>
-								<p class="text-muted-foreground text-xs">Recommended: Fast and secure sign-in</p>
-							</div>
-						</div>
-						<Button variant="outline" size="sm" onclick={() => goto('/join/secure/passkey')}>
-							Use Passkey
-						</Button>
-					</div>
-				</div>
-
-				<div class="relative">
-					<div class="absolute inset-0 flex items-center">
-						<span class="w-full border-t"></span>
-					</div>
-					<div class="relative flex justify-center text-xs uppercase">
-						<span class="bg-background text-muted-foreground px-2">Or continue with</span>
-					</div>
-				</div>
-
-				<form method="POST" class="space-y-4" use:enhance>
-					<div class="relative flex gap-4">
-						<Form.Field {form} name="password" class="flex-1">
-							<Form.Control>
-								{#snippet children({ props })}
-									<Form.Label class="data-[fs-error]:text-foreground">Password</Form.Label>
-									<div class="relative">
-										<Input
-											{...props}
-											type={showPassword ? 'text' : 'password'}
-											bind:value={$formData.password}
-											class="pr-10"
-										></Input>
-										<button
-											type="button"
-											class="absolute right-3 top-1/2 -translate-y-1/2"
-											onclick={() => (showPassword = !showPassword)}
-										>
-											{#if showPassword}
-												<EyeOffIcon class="text-muted-foreground size-4"></EyeOffIcon>
-											{:else}
-												<EyeIcon class="text-muted-foreground size-4"></EyeIcon>
-											{/if}
-										</button>
+				<form method="POST" class="space-y-6" use:enhance>
+					<div
+						role="button"
+						tabindex="0"
+						onclick={() => setSelected('passkey')}
+						onkeydown={(e) => {
+							if (e.key === 'Enter' || e.key === ' ') {
+								setSelected('passkey');
+							}
+						}}
+					>
+						<Card class={selected === 'passkey' ? 'h-auto' : 'h-[60px]'}>
+							<div class="p-3">
+								<div class="flex w-full justify-between">
+									<div class="flex items-center gap-2">
+										<div class="bg-primary/10 rounded-full p-2">
+											<FingerprintIcon class="text-primary size-5" />
+										</div>
+										{#if selected !== 'passkey'}
+											<span class="text-base font-semibold" in:fade>Passkey</span>
+										{/if}
 									</div>
-									{#if $formData.password}
-										<div class="mt-2 space-y-1">
-											<div class="flex items-center gap-2 text-xs">
-												<span class="text-muted-foreground">Strength:</span>
-												<div class="flex flex-1 gap-1">
+									<Badge class="text-foreground h-6 rounded-full bg-green-500  p-2 font-normal"
+										>Most Secure</Badge
+									>
+								</div>
+
+								{#if selected === 'passkey'}
+									<div
+										class="mt-3 flex flex-col text-start"
+										in:slide={{ duration: 1000, easing: cubicOut }}
+									>
+										<span class="text-base font-semibold">Passkey</span>
+										<p class="text-muted-foreground text-pretty text-sm">
+											A passkey is the fastest and safest way to access your account than a
+											password. Proceed with passkey or choose another option.
+										</p>
+									</div>
+								{/if}
+							</div>
+						</Card>
+					</div>
+					<div
+						role="button"
+						tabindex="0"
+						onclick={() => setSelected('password')}
+						onkeydown={(e) => {
+							if (e.key === 'Enter' || e.key === ' ') {
+								setSelected('password');
+							}
+						}}
+					>
+						<Card class="ralative {selected === 'password' ? 'h-auto' : 'h-[60px]'}">
+							<div class="flex flex-col justify-center gap-4 p-4">
+								<div class="flex items-center gap-x-2">
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										width="32"
+										height="32"
+										fill="currentColor"
+										viewBox="0 0 256 256"
+										><path
+											d="M256,72V184a16,16,0,0,1-16,16H16A16,16,0,0,1,0,184V72A16,16,0,0,1,16,56H240A16,16,0,0,1,256,72Z"
+											opacity="0.2"
+										></path><path
+											d="M48,56V200a8,8,0,0,1-16,0V56a8,8,0,0,1,16,0Zm92,54.5L120,117V96a8,8,0,0,0-16,0v21L84,110.5a8,8,0,0,0-5,15.22l20,6.49-12.34,17a8,8,0,1,0,12.94,9.4l12.34-17,12.34,17a8,8,0,1,0,12.94-9.4l-12.34-17,20-6.49A8,8,0,0,0,140,110.5ZM246,115.64A8,8,0,0,0,236,110.5L216,117V96a8,8,0,0,0-16,0v21l-20-6.49a8,8,0,0,0-4.95,15.22l20,6.49-12.34,17a8,8,0,1,0,12.94,9.4l12.34-17,12.34,17a8,8,0,1,0,12.94-9.4l-12.34-17,20-6.49A8,8,0,0,0,246,115.64Z"
+										></path></svg
+									>
+									<span class="text-base font-semibold">
+										{selected === 'password' ? 'Password' : 'Use a password instead'}
+									</span>
+								</div>
+
+								{#if selected === 'password'}
+									<div
+										class="relative flex flex-col gap-2"
+										in:slide={{ duration: 1000, easing: cubicOut }}
+									>
+										<Form.Field {form} name="password" class="w-full">
+											<Form.Control>
+												{#snippet children({ props })}
+													<div class="relative">
+														<LockIcon
+															class="text-muted-foreground absolute left-3 top-1/2 size-5 -translate-y-1/2"
+														/>
+														<Input
+															{...props}
+															type={showPassword ? 'text' : 'password'}
+															bind:value={$formData.password}
+															class="h-12 pl-10 pr-10 text-base"
+															placeholder="Password"
+														/>
+														<button
+															type="button"
+															class="absolute right-3 top-1/2 -translate-y-1/2"
+															onclick={() => (showPassword = !showPassword)}
+														>
+															{#if showPassword}
+																<EyeOffIcon class="text-muted-foreground size-5"></EyeOffIcon>
+															{:else}
+																<EyeIcon class="text-muted-foreground size-5"></EyeIcon>
+															{/if}
+														</button>
+													</div>
+												{/snippet}
+											</Form.Control>
+										</Form.Field>
+
+										{#if $formData.password && !meetsAllRequirements}
+											<div
+												class="bg-card text-card-foreground absolute -right-[10.5rem] w-auto rounded-lg border p-3 shadow-md"
+												transition:fade
+											>
+												<div class="absolute -left-2 top-4 h-4">
 													<div
-														class={cn(
-															'h-[1px] flex-1 rounded-sm transition-all duration-300',
-															passwordStrength > 0 && !meetsAllRequirements
-																? 'from-destructive bg-gradient-to-r to-yellow-500'
-																: meetsAllRequirements
-																	? 'bg-green-500'
-																	: 'bg-muted'
-														)}
-													></div>
-													<div
-														class={cn(
-															'h-[1px] flex-1 rounded-sm transition-all duration-300',
-															passwordStrength >= 30 && !meetsAllRequirements
-																? 'bg-gradient-to-r from-yellow-500 to-yellow-400'
-																: meetsAllRequirements
-																	? 'bg-green-500'
-																	: 'bg-muted'
-														)}
-													></div>
-													<div
-														class={cn(
-															'h-[1px] flex-1 rounded-sm transition-all duration-300',
-															meetsAllRequirements ? 'bg-green-500' : 'bg-muted'
-														)}
+														class="border-border bg-card h-4 w-4 rotate-45 transform border-b border-l"
 													></div>
 												</div>
-												<span
-													class="font-medium opacity-80 transition-colors duration-300"
-													style={`color: ${getStrengthGradientColor(passwordStrength)}`}
-												>
-													{getStrengthText(passwordStrength)}
-												</span>
+												<div class="space-y-1.5 text-[0.625rem]">
+													<p class="font-medium leading-none">Password requirements:</p>
+													<ul class="text-destructive space-y-0.5 leading-tight">
+														<li
+															class={$formData.password.length >= 8 ? 'text-muted-foreground' : ''}
+														>
+															• At least 8 characters
+														</li>
+														<li
+															class={/[A-Z]/.test($formData.password)
+																? 'text-muted-foreground'
+																: ''}
+														>
+															• One uppercase letter
+														</li>
+														<li
+															class={/[a-z]/.test($formData.password)
+																? 'text-muted-foreground'
+																: ''}
+														>
+															• One lowercase letter
+														</li>
+														<li
+															class={/[0-9]/.test($formData.password)
+																? 'text-muted-foreground'
+																: ''}
+														>
+															• One number
+														</li>
+														<li
+															class={/[^A-Za-z0-9]/.test($formData.password)
+																? 'text-muted-foreground'
+																: ''}
+														>
+															• One special character
+														</li>
+													</ul>
+												</div>
 											</div>
-										</div>
-									{/if}
-								{/snippet}
-							</Form.Control>
-							<Form.FieldErrors />
-						</Form.Field>
-
-						{#if $formData.password && !meetsAllRequirements}
-							<div
-								class="bg-card text-card-foreground absolute -right-[10rem] top-6 w-auto rounded-lg border p-3 shadow-md"
-							>
-								<div class="absolute -left-2 top-4 h-4 w-4">
-									<div
-										class="border-border bg-card h-4 w-4 rotate-45 transform border-b border-l"
-									></div>
-								</div>
-								<div class="space-y-1.5 text-[0.625rem]">
-									<p class="font-medium leading-none">Password requirements:</p>
-									<ul class="text-destructive space-y-0.5 leading-tight">
-										<li class={$formData.password.length >= 8 ? 'text-muted-foreground' : ''}>
-											• At least 8 characters
-										</li>
-										<li class={/[A-Z]/.test($formData.password) ? 'text-muted-foreground' : ''}>
-											• One uppercase letter
-										</li>
-										<li class={/[a-z]/.test($formData.password) ? 'text-muted-foreground' : ''}>
-											• One lowercase letter
-										</li>
-										<li class={/[0-9]/.test($formData.password) ? 'text-muted-foreground' : ''}>
-											• One number
-										</li>
-										<li
-											class={/[^A-Za-z0-9]/.test($formData.password) ? 'text-muted-foreground' : ''}
-										>
-											• One special character
-										</li>
-									</ul>
-								</div>
-							</div>
-						{/if}
-					</div>
-
-					<Form.Field {form} name="confirmPassword">
-						<Form.Control>
-							{#snippet children({ props })}
-								<Form.Label class="data-[fs-error]:text-foreground">Confirm Password</Form.Label>
-								<div class="relative">
-									<Input
-										{...props}
-										type={showConfirmPassword ? 'text' : 'password'}
-										bind:value={$formData.confirmPassword}
-										class="pr-10"
-									/>
-									<button
-										type="button"
-										class="absolute right-3 top-1/2 -translate-y-1/2"
-										onclick={() => (showConfirmPassword = !showConfirmPassword)}
-									>
-										{#if showConfirmPassword}
-											<EyeOffIcon class="text-muted-foreground size-4" />
-										{:else}
-											<EyeIcon class="text-muted-foreground size-4" />
 										{/if}
-									</button>
-								</div>
-							{/snippet}
-						</Form.Control>
-						<Form.FieldErrors />
-					</Form.Field>
-					<Form.Button class="w-full">Create Account</Form.Button>
+
+										<Form.Field {form} name="confirmPassword" class="w-full">
+											<Form.Control>
+												{#snippet children({ props })}
+													<div class="relative">
+														<LockIcon
+															class="text-muted-foreground absolute left-3 top-1/2 size-5 -translate-y-1/2"
+														/>
+														<Input
+															{...props}
+															type={showConfirmPassword ? 'text' : 'password'}
+															bind:value={$formData.confirmPassword}
+															class="h-12 pl-10 pr-10 text-base"
+															placeholder="Confirm Password"
+														/>
+														<button
+															type="button"
+															class="absolute right-3 top-1/2 -translate-y-1/2"
+															onclick={() => (showConfirmPassword = !showConfirmPassword)}
+														>
+															{#if showConfirmPassword}
+																<EyeOffIcon class="text-muted-foreground size-5" />
+															{:else}
+																<EyeIcon class="text-muted-foreground size-5" />
+															{/if}
+														</button>
+													</div>
+
+													{#if $formData.password}
+														<div class="mt-2 space-y-1" transition:fade>
+															<div class="flex items-center gap-2">
+																<div class="flex flex-1 gap-1">
+																	{#each Array(5) as _, i}
+																		<span
+																			class={cn(
+																				'h-1 flex-1 rounded-sm transition-all duration-300',
+																				passwordStrength >= (i + 1) * 20
+																					? !meetsAllRequirements
+																						? 'bg-yellow-500'
+																						: 'bg-green-500'
+																					: 'bg-muted'
+																			)}
+																		></span>
+																	{/each}
+																</div>
+																<span
+																	class="flex w-12 justify-end text-xs font-medium opacity-80 transition-colors duration-300"
+																	style={`color: ${getStrengthColor(passwordStrength)}`}
+																>
+																	{getStrengthText(passwordStrength)}
+																</span>
+															</div>
+														</div>
+													{/if}
+												{/snippet}
+											</Form.Control>
+										</Form.Field>
+										{#if $allErrors.length}
+											<ul transition:fade>
+												{#each $allErrors as error}
+													<li class="text-destructive text-[0.8rem] font-medium" transition:fade>
+														{error.messages}
+													</li>
+												{/each}
+											</ul>
+										{/if}
+									</div>
+								{/if}
+							</div>
+						</Card>
+					</div>
+					<Form.Button class="h-10 w-full">Create Account</Form.Button>
 				</form>
 			</div>
 		</div>

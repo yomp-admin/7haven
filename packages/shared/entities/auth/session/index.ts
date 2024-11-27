@@ -19,7 +19,7 @@ export class Session {
   expiresAt!: Date;
 
   @Fields.createdAt()
-  createdAt = new Date();
+  createdAt!: Date;
 
   @Fields.updatedAt()
   updatedAt?: Date;

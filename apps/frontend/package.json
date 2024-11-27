@@ -14,13 +14,12 @@
 		"test": "npm run test:unit -- --run"
 	},
 	"dependencies": {
-		"lucide-svelte": "^0.460.1",
-		"@node-rs/argon2": "^2.0.0",
-		"@node-rs/argon2-wasm32-wasi": "^2.0.1",
 		"@oslojs/binary": "^1.0.0",
 		"@oslojs/encoding": "^1.1.0",
 		"@repo/shared": "workspace:*",
-		"@repo/ui": "workspace:*"
+		"@repo/ui": "workspace:*",
+		"debounce": "^2.2.0",
+		"lucide-svelte": "^0.460.1"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.3.1",

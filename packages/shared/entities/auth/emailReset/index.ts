@@ -9,8 +9,8 @@ export class EmailReset {
   @Fields.cuid()
   id!: string;
 
-  @Fields.string({ validate: [Validators.unique], allowNull: true })
-  userId?: string;
+  @Fields.string()
+  userId!: string;
 
   @Relations.toOne(() => User, { field: 'userId' })
   user?: User;
@@ -21,8 +21,8 @@ export class EmailReset {
   @Fields.string()
   code!: string;
 
-  @Fields.dateOnly()
-  expires_at!: Date;
+  @Fields.date()
+  expiresAt!: Date;
 
   @Fields.boolean()
   email_verified!: boolean;

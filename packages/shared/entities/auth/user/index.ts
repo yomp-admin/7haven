@@ -34,7 +34,7 @@ export class User {
     inputType: 'password'
     //validate: [Validators.required, Validators.minLength(8)]
   })
-  passwordHash!: string;
+  password!: string;
 
   @Fields.object<User, string[]>({
     valueConverter: {

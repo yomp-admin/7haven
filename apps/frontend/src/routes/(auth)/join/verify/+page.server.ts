@@ -5,7 +5,7 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { formSchema } from './schema';
 import { getUserService } from '@repo/shared';
 import { handleFetch } from '@/utils';
-import { encryptCookie } from '../../../utils/encoding';
+import { decryptCookie, encryptCookie } from '../../../../utils/encoding';
 
 export const load: PageServerLoad = async () => {
 	return {
@@ -15,6 +15,19 @@ export const load: PageServerLoad = async () => {
 
 export const actions: Actions = {
 	default: async ({ request, cookies }) => {
+		const encryptedCookie = cookies.get('7haven_init');
+
+		let onboarding;
+
+		if (encryptedCookie) {
+			const decryptedData = decryptCookie(encryptedCookie);
+			if (!decryptedData) {
+				cookies.delete('7haven_init', { path: '/' });
+				throw redirect(302, '/join');
+			}
+			onboarding = decryptedData;
+		}
+
 		const form = await superValidate(request, zod(formSchema));
 
 		if (!form.valid) {
@@ -24,20 +37,21 @@ export const actions: Actions = {
 		}
 
 		const [err, res] = await handleFetch(() =>
-			getUserService().user.initialize_seller_registration(form.data.email)
+			getUserService().user.verify_seller_email(onboarding.userId, form.data.verification_code)
 		);
 
-		if (err || !res) {
+		if (err || !res.success) {
+			form.errors.verification_code = [res?.message ?? 'Invalid verification code'];
 			return fail(400, {
 				form,
-				error: err?.message ?? 'Something went wrong'
+				error: err?.message
 			});
 		}
 
 		const encryptedData = encryptCookie({
-			userId: res.userId,
-			email: form.data.email,
-			verified: false
+			userId: onboarding.userId,
+			email: onboarding.email,
+			verified: true
 		});
 
 		cookies.set('7haven_init', encryptedData, {
@@ -45,9 +59,9 @@ export const actions: Actions = {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
 			sameSite: 'strict',
-			maxAge: 30 * 60
+			maxAge: 15 * 60
 		});
 
-		throw redirect(302, '/join/verify');
+		throw redirect(302, '/join/secure');
 	}
 };
