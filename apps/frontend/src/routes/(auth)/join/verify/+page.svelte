@@ -45,7 +45,7 @@
 	}
 
 	async function resendCode() {
-		if (!isCountdownFinished || isResending || !data.onboarding.userId) {
+		if (!isCountdownFinished || isResending || !data.onboarding?.userId) {
 			return;
 		}
 
@@ -53,7 +53,7 @@
 		resendError = null;
 
 		const [err] = await handleFetch(() =>
-			getUserService().user.resend_verification(data.onboarding.userId)
+			getUserService().user.resend_verification(data.onboarding!.userId)
 		);
 
 		if (err) {
@@ -72,7 +72,7 @@
 				<p class="text-muted-foreground text-sm">
 					We've sent a verification code to your email,
 					<br />
-					<span class="text-foreground/90 font-medium">{data.onboarding.email}</span>
+					<span class="text-foreground/90 font-medium">{data.onboarding?.email}</span>
 				</p>
 			</div>
 

@@ -30,9 +30,17 @@ export class User {
   username!: string;
 
   @Fields.string({
-    includeInApi: false,
-    inputType: 'password'
-    //validate: [Validators.required, Validators.minLength(8)]
+    includeInApi: false
+  })
+  passwordHash!: string;
+
+  @Fields.string<User>({
+    serverExpression: () => '********',
+    saving: async (user, fieldRef, e) => {
+      if (fieldRef.valueChanged()) {
+        user.passwordHash = await User.hash(user.password);
+      }
+    }
   })
   password!: string;
 
@@ -92,4 +100,6 @@ export class User {
 
   @Relations.toMany<User, Business>(() => Business, 'ownerId')
   businesses?: Business[];
+
+  static hash = async (password: string) => password;
 }

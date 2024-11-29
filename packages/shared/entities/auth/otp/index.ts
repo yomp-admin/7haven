@@ -18,6 +18,11 @@ export class Otp {
   @Fields.string()
   code!: string;
 
+  @Fields.boolean({
+    defaultValue: () => false
+  })
+  verified!: boolean;
+
   @Fields.date()
   expiresAt!: Date;
 

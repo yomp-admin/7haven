@@ -1,11 +1,16 @@
-import { BackendMethod, remult } from 'remult';
+import { BackendMethod } from 'remult';
 import { generateRandomOTP, getAuthRepo } from '../../../index';
+import { z } from 'zod';
 
-export class userController {
+export class UserController {
   @BackendMethod({ allowed: true, apiPrefix: 'auth' })
   static async initialize_seller_registration(
     email: string
   ): Promise<{ success: boolean; message?: string; userId?: string }> {
+    if (!z.string().email().safeParse(email).success) {
+      return { success: false, message: 'Invalid email format' };
+    }
+
     const existingUser = await getAuthRepo().user.findFirst({
       email
     });
@@ -15,11 +20,12 @@ export class userController {
         return { success: false, message: 'Email already registered' };
       }
 
-      const result = await userController.resend_verification(existingUser.id);
+      const result = await UserController.resend_verification(existingUser.id);
+
       if (!result.success) {
         return { success: false, message: result.message };
       }
-      return { success: true, userId: existingUser.id };
+      return { success: true, userId: existingUser.id, message: 'Verification code resent' };
     }
 
     const user = await getAuthRepo().user.insert({
@@ -39,7 +45,7 @@ export class userController {
     // TODO: Send verification email
     console.log(`Verification code for ${email}: ${code}`);
 
-    return { success: true, userId: user.id };
+    return { success: true, userId: user.id, message: 'Verification code sent' };
   }
 
   @BackendMethod({ allowed: true, apiPrefix: 'auth' })
@@ -47,16 +53,29 @@ export class userController {
     userId: string,
     code: string
   ): Promise<{ success: boolean; message?: string }> {
+    if (!userId || !code?.length) {
+      return { success: false, message: 'Invalid input' };
+    }
+
     const verification = await getAuthRepo().otp.findFirst({
       userId,
-      code
+      code,
+      verified: false
     });
 
     if (!verification || verification.expiresAt <= new Date()) {
       return { success: false, message: 'Invalid verification code' };
     }
 
-    return { success: true };
+    const updatedVerification = await getAuthRepo().otp.update(verification.id, {
+      verified: true
+    });
+
+    if (!updatedVerification) {
+      return { success: false, message: 'Failed to verify code' };
+    }
+
+    return { success: true, message: 'Email verified successfully' };
   }
 
   @BackendMethod({ allowed: true, apiPrefix: 'auth' })
@@ -95,30 +114,56 @@ export class userController {
 
     console.log(`New verification code for ${user.email}: ${code}`);
 
-    return { success: true };
+    return { success: true, message: 'Verification code resent' };
   }
 
   @BackendMethod({ allowed: true, apiPrefix: 'auth' })
-  static async complete_seller_registration(userId: string, password: string) {
+  static async complete_seller_registration(
+    userId: string,
+    password: string
+  ): Promise<{ success: boolean; message?: string }> {
+    if (!password || password.length < 8) {
+      return { success: false, message: 'Password must be at least 8 characters' };
+    }
+
     const verification = await getAuthRepo().otp.findFirst({
-      userId
+      userId,
+      verified: true
     });
 
     if (!verification) {
       return { success: false, message: 'Email not verified' };
     }
 
-    await getAuthRepo().user.update(userId, {
+    const user = await getAuthRepo().user.findId(userId);
+    if (!user) {
+      return { success: false, message: 'User not found' };
+    }
+
+    const updatedUser = await getAuthRepo().user.update(userId, {
       password,
       emailVerified: true
     });
 
-    return { success: true };
-  }
+    await getAuthRepo().otp.delete(verification.id);
 
-  @BackendMethod({ allowed: true })
-  static async current_user() {
-    return await remult.user;
+    if (!updatedUser) {
+      return { success: false, message: 'Failed to update user' };
+    }
+
+    const response = await fetch('http://localhost:3491/api/auth/sign-in', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username: user.email })
+    });
+
+    if (!response.ok) {
+      return { success: false, message: 'Failed to create session' };
+    }
+
+    return { success: true, message: 'Account created successfully' };
   }
 
   @BackendMethod({ allowed: true, apiPrefix: 'auth' })

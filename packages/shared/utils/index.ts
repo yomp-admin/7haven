@@ -1,41 +1,28 @@
 import { Fields, Validators, type FieldOptions } from 'remult';
-import { encodeBase32 } from '@oslojs/encoding';
-import { init } from '@paralleldrive/cuid2';
+import { customAlphabet } from 'nanoid';
+
+const alphabet = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz';
+
+const nanoid = (length?: number) => {
+  const generate = customAlphabet(alphabet, length || 14);
+  return generate();
+};
 
 export * from '../utils/abac';
-
-const randomCasing = (str: string) => {
-  return str
-    .split('')
-    .map((char) => (Math.random() > 0.5 ? char.toUpperCase() : char.toLowerCase()))
-    .join('');
-};
-
-const createCustomId = (length?: number) => {
-  return () =>
-    randomCasing(
-      init({
-        length: length || 14,
-        fingerprint: '7haven-custom-publicId-fingerprint'
-      })()
-    );
-};
 
 export function publicId<T>(
   prefix: string,
   length?: number,
   ...options: FieldOptions<T, string>[]
 ) {
-  const id = createCustomId(length);
-  const defaultValue = [prefix, id()].join('_');
   return Fields.string<T>(
     {
       validate: Validators.unique,
       allowApiUpdate: false,
-      defaultValue: () => defaultValue,
+      defaultValue: () => [prefix, nanoid(length)].join('_'),
       saving: (_, record) => {
         if (!record.value) {
-          record.value = defaultValue;
+          record.value = [prefix, nanoid(length)].join('_');
         }
       }
     },
@@ -48,5 +35,5 @@ export function verifyExpirationDate(expiresAt: Date): boolean {
 }
 
 export function generateRandomOTP(): string {
-  return createCustomId(6)();
+  return nanoid(6);
 }

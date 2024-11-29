@@ -1,5 +1,5 @@
 import { Entity, Fields, Validators, Relations } from 'remult';
-import { abac, EntityFilter } from '../../utils/abac';
+import { abac, PreFilter } from '../../utils/abac';
 import { Business } from '../business';
 
 function can(action: string) {
@@ -10,7 +10,7 @@ function can(action: string) {
   allowApiRead: () => can('read'),
   allowApiUpdate: () => can('update'),
   allowApiDelete: () => can('delete'),
-  apiPrefilter: () => Product.canRead()
+  backendPrefilter: () => Product.canRead()
 })
 export class Product {
   @Fields.cuid()
@@ -47,5 +47,5 @@ export class Product {
   @Fields.updatedAt()
   updatedAt?: Date;
 
-  static canRead = EntityFilter.create<Product>('product', 'read');
+  static canRead = PreFilter.create<Product>('product', 'read');
 }

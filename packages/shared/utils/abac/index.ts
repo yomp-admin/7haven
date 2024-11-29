@@ -22,4 +22,4 @@ export const abac = {
 export * from './checker';
 export * from './manager';
 export * from './cache';
-export * from './entityfilter';
+export * from './preFilter';

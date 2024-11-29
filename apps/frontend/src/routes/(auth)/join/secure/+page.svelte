@@ -13,6 +13,9 @@
 	import { Badge } from '@repo/ui/components/ui/badge';
 	import { slide, fade } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
+	import Password from 'phosphor-svelte/lib/Password';
+	import { toast } from 'svelte-sonner';
+	import { goto } from '$app/navigation';
 
 	let { data } = $props();
 
@@ -21,7 +24,13 @@
 	let passwordStrength = $state(0);
 
 	const form = superForm(data.form, {
-		validators: zodClient(formSchema)
+		validators: zodClient(formSchema),
+		onResult: async ({ result }) => {
+			if (result.type === 'success') {
+				toast.success(result.data?.message);
+				goto('/business_reg');
+			}
+		}
 	});
 
 	const { form: formData, enhance, allErrors } = form;
@@ -126,19 +135,7 @@
 						<Card class="ralative {selected === 'password' ? 'h-auto' : 'h-[60px]'}">
 							<div class="flex flex-col justify-center gap-4 p-4">
 								<div class="flex items-center gap-x-2">
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="32"
-										height="32"
-										fill="currentColor"
-										viewBox="0 0 256 256"
-										><path
-											d="M256,72V184a16,16,0,0,1-16,16H16A16,16,0,0,1,0,184V72A16,16,0,0,1,16,56H240A16,16,0,0,1,256,72Z"
-											opacity="0.2"
-										></path><path
-											d="M48,56V200a8,8,0,0,1-16,0V56a8,8,0,0,1,16,0Zm92,54.5L120,117V96a8,8,0,0,0-16,0v21L84,110.5a8,8,0,0,0-5,15.22l20,6.49-12.34,17a8,8,0,1,0,12.94,9.4l12.34-17,12.34,17a8,8,0,1,0,12.94-9.4l-12.34-17,20-6.49A8,8,0,0,0,140,110.5ZM246,115.64A8,8,0,0,0,236,110.5L216,117V96a8,8,0,0,0-16,0v21l-20-6.49a8,8,0,0,0-4.95,15.22l20,6.49-12.34,17a8,8,0,1,0,12.94,9.4l12.34-17,12.34,17a8,8,0,1,0,12.94-9.4l-12.34-17,20-6.49A8,8,0,0,0,246,115.64Z"
-										></path></svg
-									>
+									<Password size={32} weight="bold" />
 									<span class="text-base font-semibold">
 										{selected === 'password' ? 'Password' : 'Use a password instead'}
 									</span>

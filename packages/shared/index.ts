@@ -43,7 +43,7 @@ export function getBusinessRepo() {
 }
 export function getUserService() {
   return {
-    user: authServices.userController,
-    securityKey: authServices.securityKeyController
+    user: authServices.UserController,
+    securityKey: authServices.SecurityKeyController
   };
 }

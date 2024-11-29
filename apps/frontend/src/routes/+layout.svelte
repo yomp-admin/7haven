@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '@repo/ui/globals.css';
+	import { Toaster } from '@repo/ui/components/ui/sonner';
 	import { ModeWatcher } from 'mode-watcher';
 	import { remult } from '@repo/shared';
 
@@ -10,6 +11,7 @@
 	});
 </script>
 
+<Toaster />
 <ModeWatcher />
 
 {@render children?.()}

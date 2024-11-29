@@ -5,7 +5,7 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { formSchema } from './schema';
 import { getUserService } from '@repo/shared';
 import { handleFetch } from '@/utils';
-import { decryptCookie, encryptCookie } from '../../../../utils/encoding';
+import { encryptCookie } from '../../../../utils/encoding';
 
 export const load: PageServerLoad = async () => {
 	return {
@@ -14,20 +14,12 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, cookies }) => {
-		const encryptedCookie = cookies.get('7haven_init');
-
-		let onboarding;
-
-		if (encryptedCookie) {
-			const decryptedData = decryptCookie(encryptedCookie);
-			if (!decryptedData) {
-				cookies.delete('7haven_init', { path: '/' });
-				throw redirect(302, '/join');
-			}
-			onboarding = decryptedData;
+	default: async ({ locals, cookies, request }) => {
+		if (!locals.onboarding) {
+			throw redirect(302, '/join');
 		}
 
+		const onboarding = locals.onboarding;
 		const form = await superValidate(request, zod(formSchema));
 
 		if (!form.valid) {
@@ -37,7 +29,7 @@ export const actions: Actions = {
 		}
 
 		const [err, res] = await handleFetch(() =>
-			getUserService().user.verify_seller_email(onboarding.userId, form.data.verification_code)
+			getUserService().user.verify_seller_email(onboarding!.userId, form.data.verification_code)
 		);
 
 		if (err || !res.success) {
@@ -49,8 +41,8 @@ export const actions: Actions = {
 		}
 
 		const encryptedData = encryptCookie({
-			userId: onboarding.userId,
-			email: onboarding.email,
+			userId: onboarding?.userId,
+			email: onboarding?.email,
 			verified: true
 		});
 

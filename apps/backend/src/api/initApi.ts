@@ -4,6 +4,8 @@ import { config } from '../config/config';
 import { cache, controllers, entities } from '@repo/shared';
 import { getCookie } from 'hono/cookie';
 import { setupRateLimits } from '../routes/router';
+import { User } from '@repo/shared/entities/auth';
+import { hashPassword } from '../utils/password';
 import {
   clearSessionCookie,
   setSessionCookie,
@@ -44,6 +46,8 @@ export const setupRemult = (app: Hono) => {
       });
     }
   });
+
+  User.hash = (password) => hashPassword(password);
 
   setupRateLimits(app);
 

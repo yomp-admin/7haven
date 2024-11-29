@@ -1,7 +1,7 @@
 import { Filter, ForbiddenError, remult } from 'remult';
 import { PermissionChecker } from './checker';
 
-export class EntityFilter {
+export class PreFilter {
   static create<T extends { businessId: string }>(
     resource: string,
     action: string = 'read',
