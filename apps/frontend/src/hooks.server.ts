@@ -1,14 +1,20 @@
+import { remult } from '@repo/shared';
 import type { Handle } from '@sveltejs/kit';
 import { decryptCookie } from './utils/encoding';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	const cookie = event.cookies.get('7haven_init');
+	const onboardingCookie = event.cookies.get('haven_init');
+	const sessionCookie = event.cookies.get('haven_auth');
 
-	if (cookie) {
-		const res = await decryptCookie(cookie);
+	if (!sessionCookie) {
+		remult.user = undefined;
+	}
+
+	if (onboardingCookie) {
+		const res = await decryptCookie(onboardingCookie);
 
 		if (!res) {
-			event.cookies.delete('7haven_init', { path: '/' });
+			event.cookies.delete('haven_init', { path: '/' });
 		}
 
 		if (res && typeof res === 'object' && 'userId' in res && 'email' in res && 'verified' in res) {
@@ -19,6 +25,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 			};
 		}
 	}
+
+	remult.apiClient.httpClient = event.fetch;
 
 	return resolve(event);
 };

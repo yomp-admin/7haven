@@ -9,7 +9,15 @@ const enableLogger = false;
 
 export const setupMiddleware = (app: Hono) => {
   app.use(securityHeaders);
-  app.use(cors({ origin: config.CORS_ORIGIN, credentials: true }));
+  app.use(
+    cors({
+      origin: config.SERVER_CORS_ORIGINS,
+      allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
+      allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+      exposeHeaders: ['Content-Length', 'X-Requested-With'],
+      credentials: true
+    })
+  );
   app.use(csrf());
   //app.use(rateLimiter);
   if (!config.IS_PRODUCTION && enableLogger) {

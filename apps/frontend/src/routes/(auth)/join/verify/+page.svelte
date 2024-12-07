@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { Button } from '@repo/ui/components/ui/button';
-	import * as Form from '@repo/ui/components/ui/form';
-	import * as InputOTP from '@repo/ui/components/ui/input-otp';
+	import { Button } from '$lib/components/ui/button';
+	import * as Form from '$lib/components/ui/form';
+	import * as InputOTP from '$lib/components/ui/input-otp';
 	import { formSchema } from './schema';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { superForm } from 'sveltekit-superforms';
 	import { getUserService } from '@repo/shared';
-	import { handleFetch } from '@/utils';
+	import { handleFetch } from '../../../../utils/handleFetch';
 
 	let { data } = $props();
 

@@ -2,7 +2,7 @@
 	import BusinessSwitcher from './header/business-switcher.svelte';
 	import NavigationMenu from './header/navigation-menu.svelte';
 	import Sidebar from './sidenav/sidebar.svelte';
-	import { ScrollArea } from '@repo/ui/components/ui/scroll-area';
+	import { ScrollArea } from '$lib/components/ui/scroll-area';
 
 	let { children } = $props();
 </script>

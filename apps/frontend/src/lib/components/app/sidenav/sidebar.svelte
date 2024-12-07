@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { cn } from '@repo/ui/utils';
+	import { cn } from '$lib/utils';
 	import { menuItems } from './menuitems';
 	import { page } from '$app/stores';
-	import { Button } from '@repo/ui/components/ui/button';
-	import * as Card from '@repo/ui/components/ui/card';
+	import { Button } from '$lib/components/ui/button';
+	import * as Card from '$lib/components/ui/card';
 
 	let currentPath = $derived($page.url.pathname);
 </script>

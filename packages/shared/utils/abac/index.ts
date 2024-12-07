@@ -8,12 +8,12 @@ export const abac = {
     const user = remult.user;
     if (!user) return false;
 
-    const currentChecker = new PermissionChecker(user.id);
+    const checker = new PermissionChecker(user.id);
 
-    if (context?.businessId && currentChecker.isBusinessOwner(context.businessId)) {
+    if (context?.businessId && checker.isBusinessOwner(context.businessId)) {
       return true;
     }
-    return currentChecker.can(action, resource, context);
+    return checker.can(action, resource, context);
   },
 
   manager: PermissionManager

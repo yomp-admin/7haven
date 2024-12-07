@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { BrandIcon } from '$lib/components/icons/logo';
-	import { Button } from '@repo/ui/components/ui/button';
+	import { Button } from '$lib/components/ui/button';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { Mail, ShieldCheck, CheckCircle2 } from 'lucide-svelte';

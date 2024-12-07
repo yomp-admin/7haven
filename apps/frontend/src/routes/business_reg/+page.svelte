@@ -1,13 +1,14 @@
 <script lang="ts">
-	import { Input } from '@repo/ui/components/ui/input';
-	import { Button } from '@repo/ui/components/ui/button';
-	import * as Card from '@repo/ui/components/ui/card';
-	import { Label } from '@repo/ui/components/ui/label';
+	import { remult } from '@repo/shared';
+	import { Input } from '$lib/components/ui/input';
+	import { Button } from '$lib/components/ui/button';
+	import * as Card from '$lib/components/ui/card';
+	import { Label } from '$lib/components/ui/label';
 	import { goto } from '$app/navigation';
-	import * as Tabs from '@repo/ui/components/ui/tabs';
-	import { Separator } from '@repo/ui/components/ui/separator';
+	import * as Tabs from '$lib/components/ui/tabs';
+	import { Separator } from '$lib/components/ui/separator';
 	import { HelpCircleIcon } from 'lucide-svelte';
-	import * as HoverCard from '@repo/ui/components/ui/hover-card';
+	import * as HoverCard from '$lib/components/ui/hover-card';
 
 	type businessTypeItem = {
 		name: string;
@@ -179,4 +180,8 @@
 			</div>
 		</Card.Root>
 	{/if}
+
+	<h2>
+		{JSON.stringify(remult.user)}
+	</h2>
 </div>

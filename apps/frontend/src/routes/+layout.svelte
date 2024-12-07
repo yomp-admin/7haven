@@ -1,10 +1,10 @@
 <script lang="ts">
-	import '@repo/ui/globals.css';
-	import { Toaster } from '@repo/ui/components/ui/sonner';
+	import '../app.css';
+	import { Toaster } from '$lib/components/ui/sonner';
 	import { ModeWatcher } from 'mode-watcher';
 	import { remult } from '@repo/shared';
 
-	let { children, data } = $props();
+	let { data, children } = $props();
 
 	$effect.pre(() => {
 		remult.user = data.user;

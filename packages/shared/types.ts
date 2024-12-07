@@ -2,6 +2,8 @@ import { RemultContext } from 'remult';
 
 declare module 'remult' {
   export interface UserInfo {
+    email: string;
+    avatar?: string;
     session: {
       id: string;
       expiresAt: Date;

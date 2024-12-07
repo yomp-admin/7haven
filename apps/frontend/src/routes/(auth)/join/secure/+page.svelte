@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Input } from '@repo/ui/components/ui/input';
-	import * as Form from '@repo/ui/components/ui/form';
+	import { Input } from '$lib/components/ui/input';
+	import * as Form from '$lib/components/ui/form';
 	import FingerprintIcon from 'lucide-svelte/icons/fingerprint';
 	import EyeIcon from 'lucide-svelte/icons/eye';
 	import EyeOffIcon from 'lucide-svelte/icons/eye-off';
@@ -8,14 +8,15 @@
 	import { formSchema, calculatePasswordStrength } from './schema';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { superForm } from 'sveltekit-superforms';
-	import { cn } from '@repo/ui/utils';
-	import { Card } from '@repo/ui/components/ui/card';
-	import { Badge } from '@repo/ui/components/ui/badge';
+	import { cn } from '$lib/utils';
+	import { Card } from '$lib/components/ui/card';
+	import { Badge } from '$lib/components/ui/badge';
 	import { slide, fade } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import Password from 'phosphor-svelte/lib/Password';
 	import { toast } from 'svelte-sonner';
-	import { goto } from '$app/navigation';
+	import { invalidateAll } from '$app/navigation';
+	import { passwordSignIn } from '@/services/auth';
 
 	let { data } = $props();
 
@@ -27,8 +28,18 @@
 		validators: zodClient(formSchema),
 		onResult: async ({ result }) => {
 			if (result.type === 'success') {
-				toast.success(result.data?.message);
-				goto('/business_reg');
+				toast.success(result.data?.message, {
+					description: 'Redirecting to business registration...'
+				});
+
+				const response = await passwordSignIn(result.data?.email, result.data?.password);
+
+				if (response.ok) {
+					await invalidateAll();
+					window.location.href = result.data?.redirect;
+				}
+			} else if (result.type === 'error') {
+				toast.error(result.error?.message ?? 'An error occurred');
 			}
 		}
 	});

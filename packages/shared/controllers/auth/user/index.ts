@@ -1,4 +1,4 @@
-import { BackendMethod } from 'remult';
+import { BackendMethod, remult } from 'remult';
 import { generateRandomOTP, getAuthRepo } from '../../../index';
 import { z } from 'zod';
 
@@ -151,18 +151,6 @@ export class UserController {
       return { success: false, message: 'Failed to update user' };
     }
 
-    const response = await fetch('http://localhost:3491/api/auth/sign-in', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ username: user.email })
-    });
-
-    if (!response.ok) {
-      return { success: false, message: 'Failed to create session' };
-    }
-
     return { success: true, message: 'Account created successfully' };
   }
 
@@ -173,5 +161,10 @@ export class UserController {
       emailVerified: true
     });
     return !user;
+  }
+
+  @BackendMethod({ allowed: true, apiPrefix: 'auth' })
+  static async auth_user() {
+    return remult.user;
   }
 }

@@ -7,6 +7,6 @@ const app = new Hono();
 setupApi(app);
 
 export default {
-  port: config.PORT,
+  port: config.SERVER_PORT,
   fetch: app.fetch
 };

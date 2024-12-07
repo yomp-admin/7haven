@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Button } from '@repo/ui/components/ui/button';
-	import * as Card from '@repo/ui/components/ui/card';
-	import { Input } from '@repo/ui/components/ui/input';
+	import { Button } from '$lib/components/ui/button';
+	import * as Card from '$lib/components/ui/card';
+	import { Input } from '$lib/components/ui/input';
 	import { FacebookIcon } from '$lib/components/icons/facebook-icon';
 	import { GoogleIcon } from '$lib/components/icons/google-icon';
 	import { XIcon } from '$lib/components/icons/x-icon';

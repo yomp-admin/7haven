@@ -1,15 +1,10 @@
 <script lang="ts">
 	import { BrandIcon } from '$lib/components/icons/logo';
-	import { Button } from '@repo/ui/components/ui/button';
-	import { CircleUser } from 'lucide-svelte';
-	import * as DropdownMenu from '@repo/ui/components/ui/dropdown-menu/index.js';
-	interface Props {
-		children?: import('svelte').Snippet;
-	}
+	import { UserCircle } from 'lucide-svelte';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+	import { remult } from '@repo/shared';
 
-	let { children }: Props = $props();
-
-	const children_render = $derived(children);
+	let { children } = $props();
 </script>
 
 <div class="container mx-auto grid grid-rows-[60px_1fr] gap-20">
@@ -17,24 +12,23 @@
 		<div class="flex">
 			<a href="/" class="flex gap-2"><BrandIcon /></a>
 		</div>
-		<div class="flex flex-row items-center justify-end gap-4">
+		<div class="flex flex-row items-center justify-end gap-8">
 			<a href="/">Need Help?</a>
-			<DropdownMenu.Root>
-				<DropdownMenu.Trigger>
-					{#snippet child({ props })}
-						<Button variant="secondary" size="icon" class="rounded-full">
-							<CircleUser class="h-5 w-5" />
-							<span class="sr-only">Toggle user menu</span>
-						</Button>
-					{/snippet}
-				</DropdownMenu.Trigger>
-				<DropdownMenu.Content align="end">
-					<DropdownMenu.Label>My Account</DropdownMenu.Label>
-					<DropdownMenu.Separator />
-					<DropdownMenu.Item>Logout</DropdownMenu.Item>
-				</DropdownMenu.Content>
-			</DropdownMenu.Root>
+			{#if remult.user}
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger>
+						<UserCircle class="text-foreground-alt" />
+					</DropdownMenu.Trigger>
+					<DropdownMenu.Content>
+						<DropdownMenu.Group>
+							<DropdownMenu.GroupHeading>My Account</DropdownMenu.GroupHeading>
+							<DropdownMenu.Separator />
+							<DropdownMenu.Item>Logout</DropdownMenu.Item>
+						</DropdownMenu.Group>
+					</DropdownMenu.Content>
+				</DropdownMenu.Root>
+			{/if}
 		</div>
 	</div>
-	{@render children_render?.()}
+	{@render children?.()}
 </div>

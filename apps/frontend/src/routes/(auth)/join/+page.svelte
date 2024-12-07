@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { Input } from '@repo/ui/components/ui/input';
+	import { handleFetch } from '../../../utils/handleFetch';
+	import { Input } from '$lib/components/ui/input';
 	import { AtSign, CheckCircle } from 'lucide-svelte';
-	import * as Form from '@repo/ui/components/ui/form';
+	import * as Form from '$lib/components/ui/form';
 	import { formSchema } from './schema';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { superForm } from 'sveltekit-superforms';
 	import { getUserService } from '@repo/shared';
 	import debounce from 'debounce';
-	import { handleFetch } from '@/utils';
 
 	type EmailStatus = null | boolean | 'rateLimited' | 'checking';
 

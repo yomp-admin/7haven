@@ -11,31 +11,33 @@ import { generateSessionToken } from '../../services/auth/session';
 
 export async function signIn(c: Context) {
   const body = await c.req.json();
-  const { username } = body;
+  const { email, password } = body;
+
+  if (!email) {
+    return c.json(result('Email and password are required'), StatusCode.BAD_REQUEST);
+  }
 
   try {
-    const user = getAuthRepo().user.create({ email: username });
-    await getAuthRepo().user.validate(user);
+    let user = await getAuthRepo().user.findFirst({ email });
 
-    let existingUser = await getAuthRepo().user.findFirst({ email: username });
-
-    if (!existingUser) {
-      user.roles = ['none'];
-      existingUser = await getAuthRepo().user.save(user);
+    if (!user) {
+      return c.json(result('User not found'), StatusCode.NOT_FOUND);
     }
 
     const token = generateSessionToken();
-    const session = await createSession(token, existingUser.id);
+    const session = await createSession(token, user.id);
     setSessionCookie(c, token);
 
     const userInfo = {
-      id: existingUser.id,
-      name: existingUser.username,
-      roles: existingUser.roles,
+      id: user.id,
+      name: user.username,
+      roles: user.roles,
+      email: user.email,
+      avatar: user.avatar,
       session: {
         id: session.id,
         expiresAt: session.expiresAt,
-        twoFactorVerified: existingUser.twoFactorVerified
+        twoFactorVerified: user.twoFactorVerified
       }
     };
 

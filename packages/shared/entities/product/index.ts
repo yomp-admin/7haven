@@ -1,5 +1,5 @@
 import { Entity, Fields, Validators, Relations } from 'remult';
-import { abac, PreFilter } from '../../utils/abac';
+import { abac, preFilter } from '../../utils/abac';
 import { Business } from '../business';
 
 function can(action: string) {
@@ -47,5 +47,5 @@ export class Product {
   @Fields.updatedAt()
   updatedAt?: Date;
 
-  static canRead = PreFilter.create<Product>('product', 'read');
+  static canRead = preFilter<Product>();
 }

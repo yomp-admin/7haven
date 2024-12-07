@@ -8,8 +8,6 @@ const config = {
 	kit: {
 		adapter: adapter(),
 		alias: {
-			'@repo/ui': '../../packages/ui/src/*',
-			'@': 'src/lib',
 			'@/*': 'src/lib/*'
 		}
 	}

@@ -1,10 +1,11 @@
-import { remult } from 'remult';
+import { remult } from '@repo/shared';
 import type { LayoutServerLoad } from './$types';
 
-export const load = (async ({ fetch }) => {
-	remult.apiClient.url = 'http://localhost:3491/api';
-	remult.useFetch(fetch);
+export const load = (async () => {
+	const user = await remult.initUser();
+	//console.log('Server-side user:', user);
+
 	return {
-		user: remult.user
+		user
 	};
 }) satisfies LayoutServerLoad;

@@ -53,6 +53,8 @@ export async function validateSessionToken(token: string): Promise<UserInfo | un
     id: user.id,
     name: user.username,
     roles: user.roles,
+    email: user.email,
+    avatar: user.avatar,
     session: {
       id: session.id,
       expiresAt: session.expiresAt,

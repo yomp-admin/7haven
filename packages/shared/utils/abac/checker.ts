@@ -7,12 +7,10 @@ export interface BusinessContext extends BusinessConditions {
 }
 
 export class PermissionChecker {
-  private readonly userId: string;
   private readonly cached: Map<string, CachedPermission>;
   private readonly ownedBusinesses: Set<string>;
 
   constructor(userId: string) {
-    this.userId = userId;
     const cached = cache.get(userId);
     this.cached = cached?.permissions || new Map();
     this.ownedBusinesses = cached?.ownedBusinesses || new Set();

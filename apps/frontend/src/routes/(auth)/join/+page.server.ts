@@ -4,8 +4,8 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { formSchema } from './schema';
 import { getUserService } from '@repo/shared';
-import { handleFetch } from '@/utils';
 import { encryptCookie } from '../../../utils/encoding';
+import { handleFetch } from '../../../utils/handleFetch';
 
 export const load: PageServerLoad = async () => {
 	return {
@@ -40,7 +40,7 @@ export const actions: Actions = {
 			verified: false
 		});
 
-		cookies.set('7haven_init', encryptedData, {
+		cookies.set('haven_init', encryptedData, {
 			path: '/',
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',

@@ -63,6 +63,9 @@ export class User {
   twoFactorVerified!: boolean;
 
   @Fields.string({ allowNull: true })
+  avatar?: string;
+
+  @Fields.string({ allowNull: true })
   recoveryCode?: string;
 
   @Fields.number({ defaultValue: () => 0 })

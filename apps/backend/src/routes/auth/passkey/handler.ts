@@ -56,7 +56,7 @@ function validateClientData(clientData: any, expectedType: ClientDataType): bool
   return (
     clientData.type === expectedType &&
     verifyWebAuthnChallenge(clientData.challenge) &&
-    config.CORS_ORIGIN.includes(clientData.origin) &&
+    config.SERVER_CORS_ORIGINS.includes(clientData.origin) &&
     !clientData.crossOrigin
   );
 }
