@@ -39,7 +39,7 @@
 
 		<!-- Stats Overview -->
 		<div class="grid gap-4 sm:gap-6 lg:grid-cols-6">
-			<Card.Root class="lg:col-span-4">
+			<Card.Root class="lg:col-span-4 shadow-sm">
 				<Card.Content class="p-4 sm:p-6">
 					<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
 						<div class="w-full sm:w-1/6">
@@ -113,7 +113,7 @@
 			</Card.Root>
 
 			<!-- Balance Card -->
-			<Card.Root class="lg:col-span-2">
+			<Card.Root class="lg:col-span-2 shadow-sm">
 				<Card.Content class="p-6">
 					<div class="flex flex-col space-y-6">
 						<div class="space-y-2">
@@ -134,7 +134,7 @@
 		</div>
 		<!-- Performance Analytics -->
 		<div class="grid gap-6 lg:grid-cols-7">
-			<Card.Root class="lg:col-span-4 rounded-2xl">
+			<Card.Root class="lg:col-span-4 shadow-sm">
 				<Card.Content class="p-6">
 					<div class="mb-6 flex items-center justify-between">
 						<div>
@@ -159,7 +159,7 @@
 			</Card.Root>
 
 			<!-- Top Products -->
-			<Card.Root class="lg:col-span-3 rounded-2xl">
+			<Card.Root class="lg:col-span-3 shadow-sm">
 				<Card.Content class="p-6">
 					<div>
 						<h3 class="text-lg font-semibold">Best Sellers</h3>
@@ -200,7 +200,7 @@
 		</div>
 
 		<!-- Recent Orders -->
-		<Card.Root>
+		<Card.Root class="shadow-sm">
 			<Card.Content class="p-4 sm:p-6">
 				<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div>

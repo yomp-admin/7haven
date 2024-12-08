@@ -48,6 +48,6 @@ export const actions: Actions = {
 			maxAge: 30 * 60
 		});
 
-		throw redirect(302, '/join/verify');
+		throw redirect(303, '/join/verify');
 	}
 };

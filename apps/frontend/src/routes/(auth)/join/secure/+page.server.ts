@@ -15,7 +15,7 @@ export const load: PageServerLoad = async () => {
 export const actions: Actions = {
 	default: async ({ request, locals, cookies }) => {
 		if (!locals.onboarding) {
-			throw redirect(302, '/join');
+			throw redirect(303, '/join');
 		}
 
 		const onboarding = locals.onboarding;

@@ -5,16 +5,11 @@
 	import CreditCard from 'lucide-svelte/icons/credit-card';
 	import LogOut from 'lucide-svelte/icons/log-out';
 	import BadgeCheck from 'lucide-svelte/icons/badge-check';
-	import { setMode, resetMode, mode } from 'mode-watcher';
-	import DarkModeIcon from 'lucide-svelte/icons/moon';
-	import LightModeIcon from 'lucide-svelte/icons/sun';
-	import SystemModeIcon from 'lucide-svelte/icons/tv-minimal';
 
 	import * as Avatar from '$lib/components/ui/avatar';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { remult } from '@repo/shared';
 	import Label from './ui/label/label.svelte';
-	import * as ToggleGroup from '$lib/components/ui/toggle-group';
 	import ThemeSwitcher from '$lib/components/theme-switcher.svelte';
 
 	const hasNotifications = $state(true);
@@ -95,22 +90,6 @@
 							<div class="flex items-center justify-between">
 								<span class="text-sm">Theme</span>
 								<ThemeSwitcher />
-								<!-- <ToggleGroup.Root
-									type="single"
-									value={themeMode}
-									onValueChange={handleThemeChange}
-									class="inline-flex h-9 items-center justify-center rounded-full border p-1"
-								>
-									{#each Object.entries(themeIcons) as [value, Icon]}
-										<ToggleGroup.Item
-											{value}
-											aria-label="{value} theme"
-											class="size-7 rounded-full data-[state=on]:bg-muted focus-visible:ring-0 focus:ring-0"
-										>
-											<Icon class="size-4" />
-										</ToggleGroup.Item>
-									{/each}
-								</ToggleGroup.Root> -->
 							</div>
 						</div>
 					</div>

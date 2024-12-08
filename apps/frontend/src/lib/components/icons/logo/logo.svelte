@@ -1,20 +1,18 @@
 <script lang="ts">
-	interface Props {
-		size?: string;
-	}
+	import type { SVGAttributes } from 'svelte/elements';
+	import { cn } from '$lib/utils.js';
 
-	let { size = 'w-auto' }: Props = $props();
+	let { class: className, ...restProps }: SVGAttributes<SVGSVGElement> = $props();
 </script>
 
 <svg
-	class={size}
+	class={cn('size-auto', className)}
 	role="img"
 	fill-rule="evenodd"
 	stroke-linejoin="round"
 	stroke-miterlimit="2"
 	clip-rule="evenodd"
 	viewBox="0 0 400 150"
-	height="25"
 >
 	<path
 		fill="#f08"

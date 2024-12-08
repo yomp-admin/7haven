@@ -30,5 +30,5 @@ const ROUTES = {
 } as const;
 
 function handleRedirect(path: string): never {
-	throw redirect(302, path);
+	throw redirect(303, path);
 }

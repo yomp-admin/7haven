@@ -15,7 +15,7 @@ export const load: PageServerLoad = async () => {
 export const actions: Actions = {
 	default: async ({ locals, cookies, request }) => {
 		if (!locals.onboarding) {
-			throw redirect(302, '/join');
+			throw redirect(303, '/join');
 		}
 
 		const onboarding = locals.onboarding;
@@ -53,6 +53,6 @@ export const actions: Actions = {
 			maxAge: 15 * 60
 		});
 
-		throw redirect(302, '/join/secure');
+		throw redirect(303, '/join/secure');
 	}
 };

@@ -15,7 +15,7 @@
 		{ value: 'dark', icon: DarkModeIcon }
 	] as const);
 
-	function handleThemeChange(newTheme: Theme) {
+	function toggleTheme(newTheme: Theme) {
 		if (newTheme === currentTheme) return;
 
 		currentTheme = newTheme;
@@ -36,7 +36,7 @@
 				'outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0',
 				currentTheme === theme.value && 'bg-background text-foreground shadow-sm'
 			)}
-			onclick={() => handleThemeChange(theme.value)}
+			onclick={() => toggleTheme(theme.value)}
 		>
 			<theme.icon class="size-4" />
 		</button>

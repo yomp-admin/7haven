@@ -1,114 +1,265 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import * as Card from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
-	import { FacebookIcon } from '$lib/components/icons/facebook-icon';
-	import { GoogleIcon } from '$lib/components/icons/google-icon';
-	import { XIcon } from '$lib/components/icons/x-icon';
-	import Fingerprint from 'lucide-svelte/icons/fingerprint';
+	import * as Form from '$lib/components/ui/form';
+	import { Card } from '$lib/components/ui/card';
+	import { Badge } from '$lib/components/ui/badge';
+	import { formSchema } from './schema';
+	import { zodClient } from 'sveltekit-superforms/adapters';
+	import { superForm } from 'sveltekit-superforms';
+	import { slide, fade } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
+	import { toast } from 'svelte-sonner';
 	import { BrandIcon } from '$lib/components/icons/logo';
-	import EyeIconOn from 'lucide-svelte/icons/eye';
-	import EyeIconOff from 'lucide-svelte/icons/eye-off';
-	import BriefcaseIcon from 'lucide-svelte/icons/briefcase-business';
-	import MoveRightIcon from 'lucide-svelte/icons/move-right';
+	import { FingerprintIcon, EyeIcon, EyeOffIcon, LockIcon, AtSign } from 'lucide-svelte';
+	import { Password } from 'phosphor-svelte';
+	import { goto } from '$app/navigation';
+	import { passwordSignIn } from '@/services/auth';
 
-	let show_password = $state(true);
-	let type = $derived(show_password ? 'password' : 'text');
-	let value = $state('');
+	let { data } = $props();
 
-	function togglePasswordVisibility() {
-		show_password = !show_password;
-	}
+	let showPassword = $state(false);
+	let selected = $state<'passkey' | 'password'>('passkey');
 
-	function onInput(event: InputEvent) {
-		value = (event.target as HTMLInputElement).value;
-	}
+	const form = superForm(data.form, {
+		validators: zodClient(formSchema),
+		multipleSubmits: 'prevent',
+		resetForm: false,
+		onSubmit: ({ cancel }) => {
+			if (selected === 'passkey') {
+				cancel();
+				toast.info('Passkey authentication coming soon');
+			}
+		},
+		onUpdated: async ({ form: f }) => {
+			if (f.valid) {
+				const res = await passwordSignIn(f.data.email, f.data.password);
+
+				if (!res.ok) {
+					const errorData = await res.json();
+					f.data.password = '';
+					toast.error(errorData.message ?? 'Login failed');
+				} else {
+					f.data.email = '';
+					f.data.password = '';
+					toast.success('Signed in successfully');
+					goto('/', { invalidateAll: true });
+				}
+			}
+		},
+		onError: ({ result }) => {
+			toast.error('Connection Lost..Please try again!');
+			console.log('Client validation error:', result);
+		}
+	});
+
+	const { form: formData, enhance, submitting } = form;
+
+	const setSelected = (value: 'passkey' | 'password') => (selected = value);
 </script>
 
-<div class="flex h-screen w-full items-center justify-center">
-	<Card.Root class="mx-auto w-full min-w-max max-w-sm rounded-3xl shadow-none">
-		<Card.Header class="m-3">
-			<Card.Title class="flex items-center justify-center text-2xl"
-				><span class="mr-2">Sign in to</span><span class="pt-2"><BrandIcon /></span></Card.Title
-			>
-			<Card.Description class="text-md flex justify-center text-center"
-				><BriefcaseIcon class="mr-1 mt-[2px] size-4" />Seller Center</Card.Description
-			>
-		</Card.Header>
-		<Card.Content>
-			<div class="grid gap-4">
-				<div class="grid gap-2">
-					<Input
-						id="email"
-						type="email"
-						placeholder="Email"
-						autocomplete="email"
-						class="rounded-full px-4 py-6 text-lg font-medium shadow-none"
-						required
-					/>
-				</div>
-				<div class="relative grid items-center gap-2">
-					<Input
-						id="password"
-						{type}
-						{value}
-						placeholder="Password"
-						class="rounded-full py-6 pl-4 {value !== ''
-							? 'pr-10'
-							: 'pr-4'} text-lg font-medium shadow-none"
-						required
-					/>
-					{#if value !== ''}
-						<Button
-							class="absolute right-4"
-							onclick={togglePasswordVisibility}
-							onkeydown={togglePasswordVisibility}
-						>
-							{#if show_password}
-								<EyeIconOn class="size-5 opacity-50" />
-							{:else}
-								<EyeIconOff class="size-5 opacity-50" />
-							{/if}
-						</Button>
-					{/if}
-				</div>
-				<div class="grid gap-3 pt-2">
-					<Button class="w-full rounded-full py-6 font-bold shadow-none"
-						>Sign in<MoveRightIcon class="ml-2 size-5" /></Button
-					>
-					<div class="relative my-5 flex items-center px-10">
-						<div class="flex-grow border-t border-dotted"></div>
-						<span
-							class="bg-card text-muted-foreground absolute left-1/2 -translate-x-1/2 transform px-5 text-[12px]"
-							>Sign in with
-						</span>
-						<div class="flex-grow border-t border-dotted"></div>
+<div
+	class="container relative min-h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0"
+>
+	<div class="relative hidden h-full flex-col bg-muted p-10 dark:border-r lg:flex">
+		<div class="absolute inset-0 bg-gradient-to-b from-secondary to-secondary/90"></div>
+		<div class="relative z-20 flex items-center gap-2 text-lg font-medium">
+			<BrandIcon class="w-20" />
+		</div>
+		<div class="relative z-20 mt-auto">
+			<blockquote class="space-y-4">
+				<p class="text-base font-medium leading-relaxed text-muted-foreground/90">
+					7Haven has transformed how we manage our online store. The platform's simplicity and
+					powerful features make it the perfect choice for serious sellers.
+				</p>
+				<footer class="flex items-center gap-2">
+					<div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+						<span class="text-lg font-semibold text-primary">S</span>
 					</div>
-					<Button variant="outline" class="w-full rounded-full py-6 font-bold shadow-none"
-						><Fingerprint class="mr-2 size-5" />Face or fingerprint</Button
-					>
+					<div class="flex flex-col">
+						<span class="font-medium text-sm">Sarah</span>
+						<span class="text-xs text-muted-foreground">Founder of Modern Essentials</span>
+					</div>
+				</footer>
+			</blockquote>
+		</div>
+	</div>
+
+	<div class="p-4 lg:p-8 h-full flex items-center">
+		<div class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+			<div class="flex flex-col space-y-2 text-center">
+				<div class="flex justify-center items-center gap-2 lg:hidden mb-4">
+					<BrandIcon class="h-8 w-8" />
+					<span class="text-xl font-semibold">Haven</span>
 				</div>
+				<h1 class="text-2xl font-semibold tracking-tight">Welcome back</h1>
+				<p class="text-muted-foreground text-sm">Sign in to your seller center</p>
 			</div>
-			<div class="mx-auto mt-8 flex w-full justify-center space-x-6">
-				<Button variant="outline" size="icon" class="size-11 rounded-full border-dotted shadow-none"
-					><FacebookIcon size="w-6" /></Button
-				>
-				<Button
-					variant="outline"
-					size="icon"
-					class="size-11 rounded-full border-dotted p-2.5 shadow-none"
-					><GoogleIcon size="w-6" /></Button
-				>
-				<Button
-					variant="outline"
-					size="icon"
-					class="size-11 rounded-full border-dotted p-3 shadow-none"><XIcon size="w-6" /></Button
-				>
+
+			<div class="w-full space-y-4">
+				<form method="POST" class="space-y-4" use:enhance>
+					<!-- Passkey Option -->
+					<div
+						role="button"
+						tabindex="0"
+						onclick={() => setSelected('passkey')}
+						onkeydown={(e) => e.key === 'Enter' && setSelected('passkey')}
+					>
+						<Card
+							class="transition-all duration-200 hover:shadow-sm {selected === 'passkey'
+								? 'h-auto ring-2 ring-primary'
+								: 'h-[60px]'}"
+						>
+							<div class={selected === 'passkey' ? 'p-4' : 'px-4 flex items-center h-full'}>
+								<div class="flex w-full justify-between items-center">
+									<div class="flex items-center gap-3">
+										<div class="bg-primary/10 rounded-full p-2 flex items-center justify-center">
+											<FingerprintIcon class="text-primary size-5" />
+										</div>
+										{#if selected !== 'passkey'}
+											<span class="text-base font-medium" in:fade>Quick Sign In</span>
+										{/if}
+									</div>
+									<Badge
+										class="bg-brand/10 text-brand h-6 rounded-full px-2 cursor-default pointer-events-none"
+									>
+										Recommended
+									</Badge>
+								</div>
+
+								{#if selected === 'passkey'}
+									<div
+										class="mt-4 flex flex-col text-start"
+										in:slide={{ duration: 300, easing: cubicOut }}
+									>
+										<span class="text-base font-medium">Quick Sign In with Passkey</span>
+										<p class="text-muted-foreground text-pretty text-xs mt-1">
+											Use your device's security features for a faster, more secure sign-in
+											experience.
+										</p>
+									</div>
+								{/if}
+							</div>
+						</Card>
+					</div>
+
+					<!-- Password Option -->
+					<div
+						role="button"
+						tabindex="0"
+						onclick={() => setSelected('password')}
+						onkeydown={(e) => e.key === 'Enter' && setSelected('password')}
+					>
+						<Card
+							class="transition-all duration-200 hover:shadow-sm relative {selected === 'password'
+								? 'h-auto ring-2 ring-primary'
+								: 'h-[60px]'}"
+						>
+							<div class={selected === 'password' ? 'p-4' : 'px-4 flex items-center h-full'}>
+								<div class="flex items-center gap-3">
+									<Password class="size-5" weight="bold" />
+									<span class="text-base font-medium">
+										{selected === 'password' ? 'Sign In' : 'Use Password Instead'}
+									</span>
+								</div>
+
+								{#if selected === 'password'}
+									<div
+										class="flex flex-col gap-4 mt-4"
+										in:slide={{ duration: 300, easing: cubicOut }}
+									>
+										<Form.Field {form} name="email">
+											<Form.Control>
+												{#snippet children({ props })}
+													<div class="relative">
+														<AtSign
+															class="text-muted-foreground absolute left-3 top-1/2 size-5 -translate-y-1/2"
+														/>
+														<Input
+															{...props}
+															bind:value={$formData.email}
+															type="email"
+															class="h-11 pl-10 text-base"
+															placeholder="Email address"
+															autocomplete="email"
+														/>
+													</div>
+												{/snippet}
+											</Form.Control>
+											<Form.FieldErrors class="text-xs" />
+										</Form.Field>
+
+										<Form.Field {form} name="password">
+											<Form.Control>
+												{#snippet children({ props })}
+													<div class="relative">
+														<LockIcon
+															class="text-muted-foreground absolute left-3 top-1/2 size-5 -translate-y-1/2"
+														/>
+														<Input
+															{...props}
+															bind:value={$formData.password}
+															type={showPassword ? 'text' : 'password'}
+															class="h-11 pl-10 pr-10 text-base"
+															placeholder="Password"
+															autocomplete="current-password"
+														/>
+														<button
+															type="button"
+															class="absolute right-3 top-1/2 -translate-y-1/2"
+															onclick={() => (showPassword = !showPassword)}
+														>
+															{#if showPassword}
+																<EyeOffIcon class="text-muted-foreground size-5" />
+															{:else}
+																<EyeIcon class="text-muted-foreground size-5" />
+															{/if}
+														</button>
+													</div>
+												{/snippet}
+											</Form.Control>
+											<Form.FieldErrors class="text-xs" />
+										</Form.Field>
+									</div>
+								{/if}
+							</div>
+						</Card>
+					</div>
+
+					<div class="space-y-4">
+						<Form.Button class="w-full h-11" disabled={$submitting}>
+							{#if $submitting}
+								Signing in...
+							{:else}
+								{selected === 'passkey' ? 'Continue with Passkey' : 'Sign In'}
+							{/if}
+						</Form.Button>
+
+						<div class="flex items-center justify-between text-xs">
+							<a
+								href="/forgot-password"
+								class="text-muted-foreground hover:text-primary transition-colors"
+							>
+								Forgot password?
+							</a>
+							<a
+								href="/join"
+								class="text-primary font-medium hover:text-primary/90 transition-colors"
+							>
+								Create an account
+							</a>
+						</div>
+					</div>
+				</form>
 			</div>
-			<div class="text-muted-foreground mt-5 text-center text-sm">
-				New to 7Haven?
-				<a href="/signup" class=" text-brand hover:text-primary underline opacity-80">Sign up</a>
-			</div>
-		</Card.Content>
-	</Card.Root>
+
+			<p class="text-muted-foreground/80 px-8 text-center text-xs">
+				By continuing, you agree to our{' '}
+				<a href="/terms" class="hover:text-primary underline underline-offset-4">Terms of Service</a
+				>
+				{' '}and{' '}
+				<a href="/privacy" class="hover:text-primary underline underline-offset-4">Privacy Policy</a
+				>.
+			</p>
+		</div>
+	</div>
 </div>

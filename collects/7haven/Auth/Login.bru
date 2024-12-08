@@ -5,13 +5,14 @@ meta {
 }
 
 post {
-  url: 
+  url: http://localhost:3491/api/auth/sign-in
   body: json
   auth: none
 }
 
 body:json {
   {
-    "username": "seller@test.com"
+    "email": "sellerw@test.com",
+    "password": ""
   }
 }
