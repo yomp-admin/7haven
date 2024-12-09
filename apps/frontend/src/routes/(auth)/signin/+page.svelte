@@ -30,20 +30,24 @@
 				toast.info('Passkey authentication coming soon');
 			}
 		},
-		onUpdated: async ({ form: f }) => {
+		onUpdate: async ({ form: f, cancel }) => {
 			if (f.valid) {
 				const res = await passwordSignIn(f.data.email, f.data.password);
 
 				if (!res.ok) {
 					const errorData = await res.json();
-					f.data.password = '';
+					cancel();
+					$formData.password = '';
 					toast.error(errorData.message ?? 'Login failed');
-				} else {
-					f.data.email = '';
-					f.data.password = '';
-					toast.success('Signed in successfully');
-					goto('/', { invalidateAll: true });
 				}
+			}
+		},
+		onUpdated: async ({ form: f }) => {
+			if (f.valid) {
+				toast.success('Signed in successfully');
+				goto('/', {
+					replaceState: true
+				});
 			}
 		},
 		onError: ({ result }) => {
@@ -58,14 +62,14 @@
 </script>
 
 <div
-	class="container relative min-h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0"
+	class="container min-h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0"
 >
 	<div class="relative hidden h-full flex-col bg-muted p-10 dark:border-r lg:flex">
 		<div class="absolute inset-0 bg-gradient-to-b from-secondary to-secondary/90"></div>
-		<div class="relative z-20 flex items-center gap-2 text-lg font-medium">
-			<BrandIcon class="w-20" />
+		<div class="z-20 flex items-center">
+			<BrandIcon />
 		</div>
-		<div class="relative z-20 mt-auto">
+		<div class="z-20 mt-auto">
 			<blockquote class="space-y-4">
 				<p class="text-base font-medium leading-relaxed text-muted-foreground/90">
 					7Haven has transformed how we manage our online store. The platform's simplicity and

@@ -6,7 +6,7 @@
 </script>
 
 <svg
-	class={cn('size-auto', className)}
+	class={cn('w-20', className)}
 	role="img"
 	fill-rule="evenodd"
 	stroke-linejoin="round"

@@ -108,25 +108,16 @@
 						<Form.Button class="h-10 w-full" disabled={!by_email_status.isValid}
 							>Get Started</Form.Button
 						>
-						<p class="text-muted-foreground text-balance text-center text-xs leading-normal">
+						<p class="text-muted-foreground/80 text-balance text-center text-xs leading-normal">
 							By continuing, you have read and agree to our
-							<a
-								href="/terms"
-								class="text-brand/60 hover:text-brand/80 underline underline-offset-4"
-							>
+							<a href="/terms" class="hover:text-primary underline underline-offset-4">
 								Service Agreement</a
 							>,
-							<a
-								href="/terms"
-								class="text-brand/60 hover:text-brand/80 underline underline-offset-4"
-							>
+							<a href="/terms" class="hover:text-primary underline underline-offset-4">
 								Free Membership Agreement
 							</a>
 							and
-							<a
-								href="/privacy"
-								class="text-brand/60 hover:text-brand/80 underline underline-offset-4"
-							>
+							<a href="/privacy" class="hover:text-primary underline underline-offset-4">
 								Privacy Policy</a
 							>.
 						</p>

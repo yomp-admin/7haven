@@ -18,9 +18,9 @@
 
 <div class="mx-auto grid min-h-screen grid-rows-[60px_1fr] md:container">
 	<div class="bg-defaultbackground sticky top-0 z-50 grid grid-cols-2 items-center border-b px-4">
-		<div class="flex">
-			<a href="/" class="flex gap-2"><BrandIcon /></a>
-		</div>
+		<a href="/" class="flex items-center">
+			<BrandIcon />
+		</a>
 		<div class="flex flex-row items-center justify-end gap-4">
 			<a href="/" class="text-muted-foreground hover:text-primary text-sm">Need Help?</a>
 			<Button variant="outline" class="h-7 px-6 text-xs" onclick={() => goto('/signin')}>
