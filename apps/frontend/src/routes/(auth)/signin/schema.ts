@@ -1,8 +1,18 @@
 import { z } from 'zod';
 
 export const formSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(1, 'Password is required')
+  email: z.string().email(),
+  password: z.string().min(1)
 });
 
-export type FormSchema = typeof formSchema; 
+export const otpFormSchema = z.object({
+  verification_code: z
+    .string()
+    .min(6, {
+      message: 'Enter a 6-character code'
+    })
+    .max(6)
+});
+
+export type FormSchema = typeof formSchema;
+export type OTPFormSchema = typeof otpFormSchema; 

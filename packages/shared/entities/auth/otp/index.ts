@@ -18,6 +18,9 @@ export class Otp {
   @Fields.string()
   code!: string;
 
+  @Fields.string()
+  type!: OtpType;
+
   @Fields.boolean({
     defaultValue: () => false
   })
@@ -32,3 +35,5 @@ export class Otp {
   @Fields.updatedAt()
   updatedAt?: Date;
 }
+
+export type OtpType = 'join' | 'auth' | 'reset';

@@ -1,4 +1,4 @@
-import { Entity, Fields, Validators, Relations } from 'remult';
+import { Entity, Fields, Validators, Relations, Allow } from 'remult';
 import { publicId } from '../../../utils';
 import { SecurityKey } from '../securityKey';
 import { EmailReset } from '../emailReset';
@@ -9,7 +9,7 @@ import { Session } from '../session';
 import { Business } from '../../business';
 
 @Entity<User>('users', {
-  allowApiCrud: true,
+  allowApiCrud: Allow.authenticated,
   dbName: 'users'
 })
 export class User {

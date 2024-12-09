@@ -70,9 +70,9 @@ export async function getUserRecoveryCode(userId: string): Promise<string | null
   return user?.recoveryCode ?? null;
 }
 
-export async function getUserTOTPKey(userId: string): Promise<Uint8Array | null> {
+export async function getUserTOTPKey(userId: string) {
   const otpKey = await getAuthRepo().otp.findId(userId);
-  return otpKey?.key ?? null;
+  return otpKey?.id ?? null;
 }
 
 export async function verifyUserRecoveryCode(
@@ -153,12 +153,12 @@ export async function updateUserPassword(
 export async function updateUserTOTPKey(
   sessionId: string,
   userId: string,
-  key: Uint8Array
+  key: string
 ): Promise<void> {
   await remult.dataProvider.transaction(async () => {
     await Promise.all([
       getAuthRepo().otp.delete({ userId }),
-      getAuthRepo().otp.insert({ userId, key }),
+      getAuthRepo().otp.insert({ userId, code: key }),
       getAuthRepo().session.delete({ id: sessionId }),
       getAuthRepo().session.update({ id: sessionId }, { two_factor_verified: false } as any)
     ]);

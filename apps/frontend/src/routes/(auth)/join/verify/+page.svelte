@@ -53,7 +53,7 @@
 		resendError = null;
 
 		const [err] = await handleFetch(() =>
-			getUserService().user.resend_verification(data.onboarding!.userId)
+			getUserService().user.resend_2fa(data.onboarding!.userId, 'join')
 		);
 
 		if (err) {

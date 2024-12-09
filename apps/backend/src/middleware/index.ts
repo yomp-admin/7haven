@@ -18,8 +18,7 @@ export const setupMiddleware = (app: Hono) => {
       credentials: true
     })
   );
-  app.use(csrf());
-  //app.use(rateLimiter);
+  //app.use(csrf());
   if (!config.IS_PRODUCTION && enableLogger) {
     app.use(logger());
   }

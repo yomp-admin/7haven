@@ -28,7 +28,7 @@ export const actions: Actions = {
 		}
 
 		const [err, res] = await handleFetch(() =>
-			getUserService().user.verify_seller_email(onboarding!.userId, form.data.verification_code)
+			getUserService().user.verify_2fa(onboarding!.userId, form.data.verification_code)
 		);
 
 		if (err || !res.success) {

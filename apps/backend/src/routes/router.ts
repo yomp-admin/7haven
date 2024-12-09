@@ -5,7 +5,7 @@ import { setupMiddleware } from '../middleware';
 import { setupRemult } from '../api/initApi';
 import { setupErrorHandler } from '../utils/errorHandler';
 import { createRateLimiter } from '../utils/rateLimit';
-import { signIn, signOut, currentUser, getUser } from './auth/handler';
+import { auth2fa, signIn, signOut } from './auth/handler';
 
 export const setupApi = (app: Hono) => {
   setupMiddleware(app);
@@ -18,6 +18,7 @@ export const setupApi = (app: Hono) => {
 export const setupRateLimits = (app: Hono) => {
   // Auth routes
   app.use('/api/auth/sign-in', createRateLimiter(30, 5));
+  app.use('/api/auth/2fa', createRateLimiter(30, 5));
   app.use('/api/auth/webauthn/*', createRateLimiter(30, 5));
   app.use('/api/auth/is_email_available', createRateLimiter(30, 10));
 
@@ -35,8 +36,7 @@ const setupAuthRoutes = (app: Hono) => {
   app.route('/api/auth/webauthn', passkeyRouter);
   app.post('/api/auth/sign-in', signIn);
   app.post('/api/auth/sign-out', signOut);
-  app.get('/api/auth/current-user', currentUser);
-  app.get('/api/auth/user/:userId', getUser);
+  app.post('/api/auth/2fa', auth2fa);
 };
 
 const setupServices = (app: Hono) => {
