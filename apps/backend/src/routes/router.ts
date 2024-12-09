@@ -17,7 +17,8 @@ export const setupApi = (app: Hono) => {
 
 export const setupRateLimits = (app: Hono) => {
   // Auth routes
-  app.use('/api/auth/webauthn/*', createRateLimiter(1, 1));
+  app.use('/api/auth/sign-in', createRateLimiter(30, 5));
+  app.use('/api/auth/webauthn/*', createRateLimiter(30, 5));
   app.use('/api/auth/is_email_available', createRateLimiter(30, 10));
 
   /* // Product routes

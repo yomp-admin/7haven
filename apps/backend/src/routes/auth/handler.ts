@@ -8,24 +8,32 @@ import { result } from '../../utils/responseHandler';
 import { StatusCode } from '../../utils/statusCode';
 import type { User as Account } from '@repo/shared/entities/auth/user';
 import { generateSessionToken } from '../../services/auth/session';
+import { verifyPasswordHash } from '../../utils/password';
 
 export async function signIn(c: Context) {
   const body = await c.req.json();
   const { email, password } = body;
 
-  if (!email) {
+  if (!email || !password) {
     return c.json({ message: 'Email and password are required' }, StatusCode.BAD_REQUEST);
   }
 
   try {
-    let user = await getAuthRepo().user.findFirst({ email });
+    const user = await getAuthRepo().user.findFirst({ email });
 
     if (!user) {
       return c.json({ message: 'Invalid email or password' }, StatusCode.BAD_REQUEST);
     }
 
+    const isValidPassword = await verifyPasswordHash(user.passwordHash, password);
+
+    if (!isValidPassword) {
+      return c.json({ message: 'Invalid email or password' }, StatusCode.BAD_REQUEST);
+    }
+
     const token = generateSessionToken();
     const session = await createSession(token, user.id);
+
     setSessionCookie(c, token);
 
     const userInfo = {
@@ -55,8 +63,8 @@ export async function signIn(c: Context) {
 
 export async function signOut(c: Context) {
   if (remult.user?.session.id) {
-    cache.clear(remult.user.id);
     await getAuthRepo().session.delete(remult.user.session.id);
+    cache.clear(remult.user.id);
     remult.user = undefined;
     clearSessionCookie(c);
 

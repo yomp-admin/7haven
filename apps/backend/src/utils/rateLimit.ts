@@ -5,7 +5,9 @@ export function createRateLimiter(minutes: number, limit: number) {
     windowMs: minutes * 60 * 1000,
     limit,
     standardHeaders: 'draft-7',
-    message: { message: 'Too Many Requests' },
+    message: {
+      message: `Too Many Requests. Please try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`
+    },
     keyGenerator: (c) => {
       const clientIp =
         c.req.header('CF-Connecting-IP') ||

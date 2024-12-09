@@ -37,7 +37,13 @@
 				if (!res.ok) {
 					const errorData = await res.json();
 					cancel();
+
+					if (errorData.message.includes('Too Many Requests')) {
+						$formData.email = '';
+					}
+
 					$formData.password = '';
+
 					toast.error(errorData.message ?? 'Login failed');
 				}
 			}
