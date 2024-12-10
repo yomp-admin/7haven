@@ -70,7 +70,7 @@ export async function auth2fa(c: Context) {
   if (!userId || !code) {
     return c.json(
       {
-        message: 'Invalid user id or code'
+        message: 'Invalid verification code'
       },
       StatusCode.BAD_REQUEST
     );

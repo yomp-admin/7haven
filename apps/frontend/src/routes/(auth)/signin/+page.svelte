@@ -1,9 +1,19 @@
+<script lang="ts" module>
+	export const authState = {
+		credentials: 'credentials',
+		twoFactor: '2fa',
+		forgotPassword: 'forgot_password'
+	} as const;
+
+	export type AuthState = (typeof authState)[keyof typeof authState];
+</script>
+
 <script lang="ts">
 	import { Input } from '$lib/components/ui/input';
 	import * as Form from '$lib/components/ui/form';
 	import { Card } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
-	import { formSchema, otpFormSchema } from './schema';
+	import { formSchema, otpSchema, forgotPasswordSchema } from './schema';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { superForm } from 'sveltekit-superforms';
 	import { slide, fade } from 'svelte/transition';
@@ -14,26 +24,17 @@
 	import { Password } from 'phosphor-svelte';
 	import { goto } from '$app/navigation';
 	import { auth2fa, passwordSignIn } from '$lib/services/auth';
-	import { Button } from '$lib/components/ui/button';
 	import * as InputOTP from '$lib/components/ui/input-otp';
 	import { getUserService } from '@repo/shared';
+	import { page } from '$app/stores';
+	import { Countdown } from '@/components/app/countdown';
 
 	let { data } = $props();
 
 	let showPassword = $state(false);
 	let selected = $state<'passkey' | 'password'>('passkey');
-	let showOTPForm = $state(false);
-	let userId = $state<string | null>(null);
-	
-	
-	const COUNTDOWN = {
-		DURATION: 60,
-		INTERVAL: 1000
-	} as const;
-
-	let countdown = $state(COUNTDOWN.DURATION);
-	let isCounting = $state(false);
-	let isResending = $state(false);
+	let userId = $state<string | undefined>(undefined);
+	let currentState = $state<AuthState>(data.initialState);
 
 	const signInForm = superForm(data.form, {
 		validators: zodClient(formSchema),
@@ -59,77 +60,103 @@
 
 					$signInFormData.password = '';
 					toast.error(errorData.message ?? 'Sign in failed');
+				} else {
+					userId = (await res.json()).id;
 				}
-
-				userId = (await res.json()).id;
 			}
 		},
 		onUpdated: async ({ form: f }) => {
 			if (f.valid) {
-				showOTPForm = true;
-				startCountdown();
+				goto('?' + authState.twoFactor);
 			}
 		},
 		onError: ({ result }) => {
-			toast.error('Connection Lost..Please try again!');
-			console.log('Client validation error:', result);
+			toast.error('Connection Lost', {
+				description: 'Please try again...'
+			});
 		}
 	});
 
 	const otpForm = superForm(data.otpForm, {
-		validators: zodClient(otpFormSchema),
+		validators: zodClient(otpSchema),
 		multipleSubmits: 'prevent',
 		onUpdate: async ({ form: f, cancel }) => {
-			if (f.valid && userId) {
-				const res = await auth2fa(userId, f.data.verification_code);
-				if (!res.ok) {
+			if (f.valid) {
+				if (userId) {
+					const res = await auth2fa(userId ?? '', f.data.verification_code);
+					console.log(res);
+					if (!res.ok) {
+						cancel();
+						const errorData = await res.json();
+						$otpFormData.verification_code = '';
+						toast.error(errorData.message ?? 'Invalid verification code');
+					}
+				} else {
 					cancel();
-					const errorData = await res.json();
 					$otpFormData.verification_code = '';
-					toast.error(errorData.message ?? 'Invalid verification code');
+					toast.error('Fatal error');
 				}
 			}
 		},
 		onUpdated: async ({ form: f }) => {
 			if (f.valid) {
-				toast.success('Signed in successfully');
-				goto('/', { replaceState: true });
+				toast.success('Signed In Successfully', {
+					description: 'You are now being redirected...'
+				});
+				goto('/', {
+					replaceState: true
+				});
 			}
 		},
-		onError: ({ result }) => {
-			toast.error('Connection Lost..Please try again!');
-			console.log('Client validation error:', result);
+		onError: () => {
+			toast.error('Connection Lost', {
+				description: 'Please try again...'
+			});
 		}
 	});
 
-	function startCountdown() {
-		countdown = COUNTDOWN.DURATION;
-		isCounting = false;
-
-		const interval = setInterval(() => {
-			countdown--;
-			if (countdown <= 0) {
-				isCounting = true;
-				clearInterval(interval);
+	const forgotPasswordForm = superForm(data.forgotPasswordForm, {
+		validators: zodClient(forgotPasswordSchema),
+		multipleSubmits: 'prevent',
+		onUpdate: async ({ form: f, cancel }) => {
+			if (f.valid) {
+				/* const res = await getUserService().user.forgotPassword(f.data.email);
+				if (!res.success) {
+					cancel();
+					const errorData = await res.json();
+					$forgotPasswordFormData.email = '';
+					toast.error(errorData.message ?? 'Invalid email address');
+					http://localhost:5173/signin?password_reset&token=abc123
+				} */
 			}
-		}, COUNTDOWN.INTERVAL);
-
-		return () => clearInterval(interval);
-	}
+		},
+		onUpdated: async ({ form: f }) => {
+			if (f.valid) {
+				toast.error('Password Reset Sent', {
+					description: 'Please check your email...'
+				});
+				goto('/signin');
+			}
+		},
+		onError: ({ result }) => {
+			toast.error('Connection Lost', {
+				description: 'Please try again...'
+			});
+		}
+	});
 
 	async function resendCode() {
-		if (!isCounting || isResending || !userId) return;
+		if (!userId) return;
 
-		isResending = true;
 		const res = await getUserService().user.resend_2fa(userId, 'auth');
 
 		if (!res.success) {
 			toast.error(res.message ?? 'Failed to resend code');
 		} else {
-			startCountdown();
+			toast.success('Verification Code Sent', {
+				description: 'Please check your email...'
+			});
 		}
-
-		isResending = false;
 	}
 
 	const {
@@ -138,13 +165,25 @@
 		submitting: signInFormSubmitting
 	} = signInForm;
 
+	const { form: otpFormData, enhance: otpFormEnhance, submitting: otpFormSubmitting } = otpForm;
+
 	const {
-		form: otpFormData,
-		enhance: otpFormEnhance,
-		submitting: otpFormSubmitting,
-	} = otpForm;
+		form: forgotPasswordFormData,
+		enhance: forgotPasswordFormEnhance,
+		submitting: forgotPasswordFormSubmitting
+	} = forgotPasswordForm;
 
 	const setSelected = (value: 'passkey' | 'password') => (selected = value);
+
+	$effect.pre(() => {
+		const params = $page.url.searchParams;
+
+		currentState = params.has(authState.twoFactor)
+			? authState.twoFactor
+			: params.has(authState.forgotPassword)
+				? authState.forgotPassword
+				: authState.credentials;
+	});
 </script>
 
 <div
@@ -166,7 +205,7 @@
 						<span class="text-lg font-semibold text-primary">S</span>
 					</div>
 					<div class="flex flex-col">
-						<span class="font-medium text-sm">Sarah</span>
+						<span class="font-medium text-sm">Myra</span>
 						<span class="text-xs text-muted-foreground">Founder of Modern Essentials</span>
 					</div>
 				</footer>
@@ -175,7 +214,7 @@
 	</div>
 
 	<div class="p-4 lg:p-8 h-full flex items-center">
-		{#if !showOTPForm}
+		{#if currentState === 'credentials'}
 			<div class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
 				<div class="flex flex-col space-y-2 text-center">
 					<h1 class="text-2xl font-semibold tracking-tight">Welcome back</h1>
@@ -272,7 +311,7 @@
 														</div>
 													{/snippet}
 												</Form.Control>
-												<Form.FieldErrors class="text-xs" />
+												<Form.FieldErrors class="text-xs font-normal" />
 											</Form.Field>
 
 											<Form.Field form={signInForm} name="password">
@@ -315,9 +354,7 @@
 						<div class="space-y-4">
 							<Form.Button class="w-full h-11" disabled={$signInFormSubmitting}>
 								{#if $signInFormSubmitting}
-									<p class="loading-dots">
-										Signing in
-									</p>
+									<p class="loading-dots">Signing in</p>
 								{:else}
 									{selected === 'passkey' ? 'Continue with Passkey' : 'Sign In'}
 								{/if}
@@ -325,7 +362,7 @@
 
 							<div class="flex items-center justify-between text-xs">
 								<a
-									href="/forgot-password"
+									href="?forgot_password"
 									class="text-muted-foreground hover:text-primary transition-colors"
 								>
 									Forgot password?
@@ -352,8 +389,7 @@
 					>.
 				</p>
 			</div>
-		{/if}
-		{#if showOTPForm}
+		{:else if currentState === '2fa'}
 			<div class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
 				<div class="flex flex-col items-center space-y-2 text-center">
 					<h2 class="text-2xl font-semibold">Two-Factor Authentication</h2>
@@ -361,7 +397,7 @@
 				</div>
 
 				<!-- OTP Input Form -->
-				<form method="POST" action="?/verify" use:otpFormEnhance class="space-y-6">
+				<form method="POST" action="?/verify2fa" use:otpFormEnhance class="space-y-6">
 					<Form.Field
 						form={otpForm}
 						name="verification_code"
@@ -405,23 +441,67 @@
 					<div class="space-y-4">
 						<Form.Button class="w-full h-11" disabled={$otpFormSubmitting}>
 							{#if $otpFormSubmitting}
-								<p class="loading-dots">
-									Verifying
-								</p>
+								<p class="loading-dots">Verifying</p>
 							{:else}
 								Verify
 							{/if}
 						</Form.Button>
 						<div class="text-center">
-							<Button
-								variant="link"
-								class="text-muted-foreground text-xs"
-								disabled={countdown > 0}
-								onclick={() => resendCode()}
-							>
-								Resend code {countdown > 0 ? `in ${countdown}s` : ''}
-							</Button>
+							<Countdown
+								config={{
+									duration: 10,
+									storageKey: 'auth_countdown_end'
+								}}
+								label="Resend code"
+								onclick={resendCode}
+							/>
 						</div>
+					</div>
+				</form>
+			</div>
+		{:else}
+			<div class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+				<div class="flex flex-col items-center space-y-2 text-center">
+					<h2 class="text-2xl font-semibold">Password Reset</h2>
+					<p class="text-muted-foreground text-sm">We've sent a verification code to your email</p>
+				</div>
+
+				<!-- Forgot Password Form -->
+				<form
+					method="POST"
+					action="?/forgotPassword"
+					use:forgotPasswordFormEnhance
+					class="space-y-6"
+				>
+					<Form.Field form={forgotPasswordForm} name="email">
+						<Form.Control>
+							{#snippet children({ props })}
+								<div class="relative">
+									<AtSign
+										class="text-muted-foreground absolute left-3 top-1/2 size-5 -translate-y-1/2"
+									/>
+									<Input
+										{...props}
+										bind:value={$forgotPasswordFormData.email}
+										type="email"
+										class="h-11 pl-10 text-base"
+										placeholder="Email address"
+										autocomplete="email"
+									/>
+								</div>
+							{/snippet}
+						</Form.Control>
+						<Form.FieldErrors class="text-xs" />
+					</Form.Field>
+
+					<div class="space-y-4">
+						<Form.Button class="w-full h-11" disabled={$forgotPasswordFormSubmitting}>
+							{#if $forgotPasswordFormSubmitting}
+								<p class="loading-dots">Sending</p>
+							{:else}
+								Submit
+							{/if}
+						</Form.Button>
 					</div>
 				</form>
 			</div>

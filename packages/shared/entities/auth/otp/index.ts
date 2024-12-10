@@ -21,11 +21,6 @@ export class Otp {
   @Fields.string()
   type!: OtpType;
 
-  @Fields.boolean({
-    defaultValue: () => false
-  })
-  verified!: boolean;
-
   @Fields.date()
   expiresAt!: Date;
 

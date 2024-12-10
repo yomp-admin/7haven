@@ -60,8 +60,7 @@ export async function verifyOTP(
 
   const res = await getAuthRepo().otp.findFirst({
     userId,
-    code,
-    verified: false
+    code
   });
 
   if (!res || res.expiresAt <= new Date()) {
@@ -96,8 +95,7 @@ export async function resendOTP(
 
   const existingOTP = await getAuthRepo().otp.findFirst({
     userId,
-    type,
-    verified: false
+    type
   });
 
   if (!existingOTP) {

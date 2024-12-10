@@ -9,42 +9,40 @@
 	import { getUserService } from '@repo/shared';
 	import debounce from 'debounce';
 
-	type EmailStatus = null | boolean | 'rateLimited' | 'checking';
+	type EmailStatus = undefined | boolean | string;
 
 	const Status = {
 		checking: 'Checking',
-		rateLimited: 'Too many requests. Please try again after 30 minutes.',
 		true: 'Looks good!',
 		false: 'Not available!'
 	} as const;
 
 	let { data } = $props();
-	let emailStatus = $state<EmailStatus>(null);
+	let emailStatus = $state<EmailStatus>(undefined);
 
 	const form = superForm(data.form, {
 		validators: zodClient(formSchema),
-		onSubmit: ({ cancel }) =>
-			(!emailStatus || emailStatus === 'checking' || emailStatus === 'rateLimited') && cancel()
+		onSubmit: ({ cancel }) => (!emailStatus || emailStatus !== Status.true) && cancel()
 	});
 
 	const { form: formData, enhance } = form;
 
-	const validateEmail = debounce(async (email: string) => {
-		if (!email?.length || !formSchema.shape.email.safeParse(email).success) {
-			emailStatus = null;
+	const validateEmail = debounce(async () => {
+		if (formSchema.shape.email.safeParse($formData.email).error) {
+			emailStatus = undefined;
 			return;
 		}
 
 		emailStatus = 'checking';
 
 		const [err, res] = await handleFetch(async () =>
-			getUserService().user.is_email_available(email)
+			getUserService().user.is_email_available($formData.email)
 		);
 
-		emailStatus = err ? (err.message.includes('Too Many Requests') ? 'rateLimited' : null) : res;
+		emailStatus = err ? (err.message.includes('Too Many Requests') ? err.message : undefined) : res;
 	}, 500);
 
-	const getStatusMessage = () => Status[emailStatus as keyof typeof Status] ?? '';
+	const getStatusMessage = () => Status[emailStatus as keyof typeof Status] ?? emailStatus;
 
 	const by_email_status = $derived({
 		isValid: emailStatus === true,
@@ -79,7 +77,7 @@
 										autocomplete="off"
 										{...props}
 										bind:value={$formData.email}
-										oninput={() => validateEmail($formData.email)}
+										oninput={() => validateEmail()}
 									/>
 									<span class="text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2">
 										<AtSign class="size-5" />
@@ -90,18 +88,19 @@
 										</div>
 									{/if}
 								</div>
-								{#if emailStatus !== null}
-									<p
-										class="mt-2 w-full text-xs {emailStatus === 'checking'
-											? 'loading-dots'
-											: ''} {by_email_status.statusColor}"
-									>
-										{getStatusMessage()}
-									</p>
-								{/if}
 							{/snippet}
 						</Form.Control>
-						<Form.FieldErrors class="text-destructive w-full" />
+						{#if emailStatus !== undefined}
+							<p
+								class="w-full text-xs {emailStatus === 'checking'
+									? 'loading-dots'
+									: ''} {by_email_status.statusColor}"
+							>
+								{getStatusMessage()}
+							</p>
+						{:else}
+							<Form.FieldErrors class="w-full font-normal text-xs" />
+						{/if}
 						<Form.Description>We'll never share your email with anyone else.</Form.Description>
 					</Form.Field>
 					<div class="space-y-4">
@@ -110,14 +109,14 @@
 						>
 						<p class="text-muted-foreground/80 text-balance text-center text-xs leading-normal">
 							By continuing, you have read and agree to our
-							<a href="/terms" class="hover:text-primary underline underline-offset-4">
+							<a href="/" class="hover:text-primary underline underline-offset-4">
 								Service Agreement</a
 							>,
-							<a href="/terms" class="hover:text-primary underline underline-offset-4">
+							<a href="/" class="hover:text-primary underline underline-offset-4">
 								Free Membership Agreement
 							</a>
 							and
-							<a href="/privacy" class="hover:text-primary underline underline-offset-4">
+							<a href="/" class="hover:text-primary underline underline-offset-4">
 								Privacy Policy</a
 							>.
 						</p>
