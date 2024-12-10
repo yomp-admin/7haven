@@ -8,9 +8,9 @@
 	import * as Avatar from '$lib/components/ui/avatar';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { remult } from '@repo/shared';
-	import Label from './ui/label/label.svelte';
-	import ThemeSwitcher from '$lib/components/theme-switcher.svelte';
-	import { LogoutButton } from '$lib/components/custom/logout-button';
+	import Label from '../ui/label/label.svelte';
+	import ThemeSwitcher from '$lib/components/app/theme-switcher.svelte';
+	import { LogoutButton } from '$lib/components/app/logout-button';
 
 	const hasNotifications = $state(true);
 </script>
@@ -48,7 +48,7 @@
 					</Avatar.Root>
 				</div>
 			</DropdownMenu.Trigger>
-			<DropdownMenu.Content align="end" class="w-56 rounded-lg mt-2">
+			<DropdownMenu.Content align="end" class="w-56 rounded-lg mt-1">
 				<div class="px-2 py-2.5">
 					<div class="flex flex-col">
 						<p class="truncate text-sm font-medium leading-none">{remult.user?.name}</p>

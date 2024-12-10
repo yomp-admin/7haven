@@ -130,16 +130,16 @@
 </script>
 
 <script lang="ts">
-	import NavMain from '$lib/components/nav-main.svelte';
-	import NavBusiness from '$lib/components/nav-business.svelte';
-	import NavSecondary from '$lib/components/nav-secondary.svelte';
-	import NavUser from '$lib/components/nav-user.svelte';
+	import NavMain from '$lib/components/app/nav-main.svelte';
+	import NavBusiness from '$lib/components/app/nav-business.svelte';
+	import NavSecondary from '$lib/components/app/nav-secondary.svelte';
+	import NavUser from '$lib/components/app/nav-user.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import Command from 'lucide-svelte/icons/command';
 	import type { ComponentProps } from 'svelte';
 	import { AudioWaveform, Users } from 'lucide-svelte';
 	import { useSidebar } from '$lib/components/ui/sidebar';
-	import BusinessSwitcher from '$lib/components/business-switcher.svelte';
+	import BusinessSwitcher from '$lib/components/app/business-switcher.svelte';
 
 	const sidebar = useSidebar();
 

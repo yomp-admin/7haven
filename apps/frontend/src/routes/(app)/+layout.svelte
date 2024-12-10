@@ -1,10 +1,10 @@
 <script lang="ts">
-	import AppSidebar from '$lib/components/app-sidebar.svelte';
+	import AppSidebar from '$lib/components/app/app-sidebar.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb';
 	import { Separator } from '$lib/components/ui/separator';
 	import ScrollArea from '$lib/components/ui/scroll-area/scroll-area.svelte';
-	import NavMenu from '$lib/components/nav-menu.svelte';
+	import NavMenu from '$lib/components/app/nav-menu.svelte';
 
 	let { children } = $props();
 </script>
