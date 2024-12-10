@@ -315,7 +315,9 @@
 						<div class="space-y-4">
 							<Form.Button class="w-full h-11" disabled={$signInFormSubmitting}>
 								{#if $signInFormSubmitting}
-									Signing in...
+									<p class="loading-dots">
+										Signing in
+									</p>
 								{:else}
 									{selected === 'passkey' ? 'Continue with Passkey' : 'Sign In'}
 								{/if}
@@ -401,7 +403,15 @@
 					</Form.Field>
 
 					<div class="space-y-4">
-						<Form.Button class="w-full h-11">Verify</Form.Button>
+						<Form.Button class="w-full h-11" disabled={$otpFormSubmitting}>
+							{#if $otpFormSubmitting}
+								<p class="loading-dots">
+									Verifying
+								</p>
+							{:else}
+								Verify
+							{/if}
+						</Form.Button>
 						<div class="text-center">
 							<Button
 								variant="link"
@@ -418,3 +428,27 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+	.loading-dots::after {
+		content: '';
+		animation: dots 1.5s infinite;
+	}
+
+	@keyframes dots {
+		0%,
+		20% {
+			content: '';
+		}
+		40% {
+			content: '.';
+		}
+		60% {
+			content: '..';
+		}
+		80%,
+		100% {
+			content: '...';
+		}
+	}
+</style>

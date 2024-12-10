@@ -5,12 +5,12 @@
 	import CreditCard from 'lucide-svelte/icons/credit-card';
 	import LogOut from 'lucide-svelte/icons/log-out';
 	import BadgeCheck from 'lucide-svelte/icons/badge-check';
-
 	import * as Avatar from '$lib/components/ui/avatar';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { remult } from '@repo/shared';
 	import Label from './ui/label/label.svelte';
 	import ThemeSwitcher from '$lib/components/theme-switcher.svelte';
+	import { LogoutButton } from '$lib/components/custom/logout-button';
 
 	const hasNotifications = $state(true);
 </script>
@@ -48,7 +48,7 @@
 					</Avatar.Root>
 				</div>
 			</DropdownMenu.Trigger>
-			<DropdownMenu.Content align="end" class="w-56 rounded-xl mt-2">
+			<DropdownMenu.Content align="end" class="w-56 rounded-lg mt-2">
 				<div class="px-2 py-2.5">
 					<div class="flex flex-col">
 						<p class="truncate text-sm font-medium leading-none">{remult.user?.name}</p>
@@ -95,11 +95,13 @@
 					</div>
 				</DropdownMenu.Group>
 				<DropdownMenu.Separator />
-				<DropdownMenu.Item class="flex h-10 items-center px-3">
-					<div class="flex w-4 mr-2">
-						<LogOut class="size-4" />
-					</div>
-					<span>Log out</span>
+				<DropdownMenu.Item class="flex h-10 items-center px-0">
+					<LogoutButton variant="ghost" class="w-full justify-start">
+						<div class="flex space-x-2 items-center">
+							<LogOut class="size-4" />
+						</div>
+						<span>Log out</span>
+					</LogoutButton>
 				</DropdownMenu.Item>
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>

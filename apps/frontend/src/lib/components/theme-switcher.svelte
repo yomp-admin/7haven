@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
-	import { setMode, resetMode, mode, userPrefersMode } from 'mode-watcher';
+	import { setMode, resetMode, userPrefersMode } from 'mode-watcher';
 	import DarkModeIcon from 'lucide-svelte/icons/moon';
 	import LightModeIcon from 'lucide-svelte/icons/sun';
 	import SystemModeIcon from 'lucide-svelte/icons/tv-minimal';
